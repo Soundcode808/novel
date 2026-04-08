@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>soundcode808</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=Noto+Sans+KR:wght@300;400;500&family=Space+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --text: #1a1a1a;
+      --text-sub: #888;
+      --text-muted: #bbb;
+      --border: #efefef;
+      --radius: 4px;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ── CANVAS BG ─────────────────────────── */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── LAYOUT WRAPPER ────────────────────── */
+    .page-wrap {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── HEADER ────────────────────────────── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(250,250,250,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      padding: 0 2rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .site-name {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.82rem;
+      letter-spacing: 0.04em;
+      color: var(--text);
+    }
+
+    .header-nav a {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      transition: color 0.2s;
+    }
+    .header-nav a:hover { color: var(--text); }
+
+    /* ── HERO ──────────────────────────────── */
+    .hero {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 7rem 2rem 4.5rem;
+    }
+
+    .hero-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 1.4rem;
+    }
+
+    .hero-title {
+      font-family: 'Noto Serif KR', serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 300;
+      line-height: 1.3;
+      color: var(--text);
+      margin-bottom: 1.2rem;
+    }
+
+    .hero-desc {
+      font-size: 0.88rem;
+      color: var(--text-sub);
+      line-height: 1.9;
+      max-width: 460px;
+    }
+
+    /* ── WORKS ─────────────────────────────── */
+    .works-section {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 2rem 8rem;
+    }
+
+    .section-rule {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    .works-count {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      margin-bottom: 2rem;
+    }
+
+    /* ── CARD ──────────────────────────────── */
+    .card-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card {
+      display: grid;
+      grid-template-columns: 2.5rem 1fr auto;
+      align-items: start;
+      gap: 1.2rem;
+      padding: 1.8rem 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: opacity 0.2s;
+      background: transparent;
+    }
+    .card:first-child { border-top: 1px solid var(--border); }
+    .card:hover { opacity: 0.6; }
+
+    .card-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      padding-top: 0.25rem;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .card-theme-badge {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.15em 0.55em;
+      border: 1px solid #ddd;
+      color: var(--text-muted);
+      border-radius: 2px;
+    }
+
+    .card-date {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    .card-title {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 1.15rem;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+      line-height: 1.4;
+    }
+
+    .card-subtitle {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+    }
+
+    .card-excerpt {
+      font-size: 0.83rem;
+      color: var(--text-sub);
+      line-height: 1.75;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-arrow {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      padding-top: 0.25rem;
+      transition: transform 0.2s, color 0.2s;
+    }
+    .card:hover .card-arrow { transform: translateX(4px); color: var(--text); }
+
+    /* ── EMPTY ─────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 0;
+      color: var(--text-muted);
+      font-size: 0.83rem;
+      line-height: 2;
+    }
+
+    /* ── FOOTER ────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .footer-inner {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 0.12em;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 배경 캔버스 -->
+  <canvas id="bg-canvas"></canvas>
+
+  <div class="page-wrap">
+    <header>
+      <a href="index.html" class="site-name">soundcode808</a>
+      <nav class="header-nav">
+        <a href="admin.html">관리</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <p class="hero-label">Fiction</p>
+        <h1 class="hero-title">쓰여진 것들</h1>
+        <p class="hero-desc">짧고 조용한 이야기들.<br>세계의 시작 또는 끝이거나, 만남이거나 이별이거나.</p>
+      </section>
+
+      <section class="works-section">
+        <hr class="section-rule">
+        <p class="works-count" id="works-count">— works</p>
+        <div class="card-list" id="card-list">
+          <div class="empty-state">불러오는 중…</div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="footer-inner">soundcode808 &nbsp;·&nbsp; all rights reserved</div>
+    </footer>
+  </div>
+
+  <script src="stories.js"></script>
+  <script>
+    /* ── 배경 애니메이션 ──────────────────────── */
+    (function() {
+      const canvas = document.getElementById('bg-canvas');
+      const ctx    = canvas.getContext('2d');
+      let W, H, lines;
+
+      function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      }
+
+      function makeLine() {
+        const vertical = Math.random() > 0.5;
+        return {
+          vertical,
+          x:       vertical ? Math.random() * W : -W * 0.1,
+          y:       vertical ? -H * 0.1 : Math.random() * H,
+          length:  (0.3 + Math.random() * 0.5) * (vertical ? H : W),
+          speed:   0.08 + Math.random() * 0.15,
+          opacity: 0.03 + Math.random() * 0.07,
+          width:   0.4 + Math.random() * 0.8,
+        };
+      }
+
+      function initLines() {
+        lines = Array.from({ length: 28 }, makeLine);
+      }
+
+      function step() {
+        ctx.clearRect(0, 0, W, H);
+
+        lines.forEach(l => {
+          ctx.save();
+          ctx.globalAlpha = l.opacity;
+          ctx.strokeStyle = '#aaaaaa';
+          ctx.lineWidth   = l.width;
+          ctx.beginPath();
+          if (l.vertical) {
+            ctx.moveTo(l.x, l.y);
+            ctx.lineTo(l.x, l.y + l.length);
+            l.y += l.speed;
+            if (l.y > H + 50) Object.assign(l, makeLine(), { vertical: true, y: -l.length, x: Math.random() * W });
+          } else {
+            ctx.moveTo(l.x, l.y);
+            ctx.lineTo(l.x + l.length, l.y);
+            l.x += l.speed;
+            if (l.x > W + 50) Object.assign(l, makeLine(), { vertical: false, x: -l.length, y: Math.random() * H });
+          }
+          ctx.stroke();
+          ctx.restore();
+        });
+
+        requestAnimationFrame(step);
+      }
+
+      window.addEventListener('resize', () => { resize(); });
+      resize();
+      initLines();
+      step();
+    })();
+
+    /* ── 작품 렌더링 ─────────────────────────── */
+    const THEME_LABELS = { minimal: 'Minimal', night: 'Night', sepia: 'Sepia' };
+
+    function render() {
+      const list    = document.getElementById('card-list');
+      const countEl = document.getElementById('works-count');
+
+      if (!window.STORIES || window.STORIES.length === 0) {
+        list.innerHTML = '<div class="empty-state">아직 올라온 작품이 없습니다.</div>';
+        countEl.textContent = '0 works';
+        return;
+      }
+
+      countEl.textContent = window.STORIES.length + ' works';
+
+      list.innerHTML = window.STORIES.map((s, i) => `
+        <article class="card" onclick="location.href='story.html?id=${s.id}'">
+          <span class="card-num">${String(i + 1).padStart(2, '0')}</span>
+          <div class="card-body">
+            <div class="card-meta">
+              <span class="card-theme-badge">${THEME_LABELS[s.theme] || s.theme}</span>
+              ${s.date ? `<span class="card-date">${s.date}</span>` : ''}
+            </div>
+            <h2 class="card-title">${s.title}</h2>
+            ${s.subtitle ? `<p class="card-subtitle">${s.subtitle}</p>` : ''}
+            <p class="card-excerpt">${s.excerpt || ''}</p>
+          </div>
+          <span class="card-arrow">→</span>
+        </article>
+      `).join('');
+    }
+
+    render();
+  </script>
+</body>
+</html>
