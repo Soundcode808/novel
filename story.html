@@ -334,10 +334,19 @@
     .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
     @media(max-width:600px){
-      main{padding:2.5rem 1.2rem 6rem;}
-      header{padding:0 1rem;}
-      .font-ctrl{display:none;}
-      .nav-row{grid-template-columns:1fr;}
+      main { padding: 2.5rem 1.2rem 6rem; }
+      header { padding: 0 .9rem; height: 52px; gap: .5rem; }
+      .font-ctrl { display: none; }
+      .nav-row { grid-template-columns: 1fr; }
+      .story-title { font-size: clamp(1.4rem, 7vw, 1.9rem); }
+      .theme-btns { gap: .15rem; }
+      .tbtn { width: 18px; height: 18px; }
+      .brand-block { gap: .15rem; }
+      .site-id { font-size: .58rem; }
+      .sns-link { width: 18px; height: 18px; }
+      .sns-link svg { width: 10px; height: 10px; }
+      .share-row { gap: .5rem; }
+      .share-btn { font-size: .6rem; padding: .35rem .7rem; }
     }
   </style>
 </head>

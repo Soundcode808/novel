@@ -8,14 +8,22 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root {
-      --bg: #fafafa;
-      --surface: #ffffff;
-      --text: #1a1a1a;
-      --text-sub: #888;
-      --text-muted: #bbb;
-      --border: #efefef;
-      --radius: 4px;
+    /* ── THEMES ──────────────────────────────── */
+    body.t-minimal {
+      --bg:#fafafa; --surface:#fff; --text:#1c1c1e; --text-sub:#6e6e73;
+      --text-muted:#b0b0b5; --border:#e8e8ec; --hbg:rgba(250,250,250,0.88);
+    }
+    body.t-night {
+      --bg:#0f0e0c; --surface:#181714; --text:#e8d8b8; --text-sub:#a09070;
+      --text-muted:#5a4e3a; --border:#2a2520; --hbg:rgba(15,14,12,0.94);
+    }
+    body.t-sepia {
+      --bg:#f2ead8; --surface:#faf4e8; --text:#3c2f1e; --text-sub:#7a6248;
+      --text-muted:#b09a7e; --border:#ddd0bc; --hbg:rgba(242,234,216,0.94);
+    }
+    body.t-void {
+      --bg:#07080f; --surface:#0d0e1c; --text:#c8dcf0; --text-sub:#5a7a9a;
+      --text-muted:#2a3a55; --border:#1a2240; --hbg:rgba(7,8,15,0.95);
     }
 
     html { font-size: 16px; }
@@ -51,15 +59,22 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(250,250,250,0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(0,0,0,0.06);
+      background: var(--hbg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
       padding: 0 2rem;
       height: 56px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+    }
+
+    .brand-block {
+      display: flex;
+      flex-direction: column;
+      gap: .2rem;
+      justify-content: center;
     }
 
     .site-name {
@@ -69,6 +84,59 @@
       color: var(--text);
     }
 
+    /* SNS 아이콘 */
+    .sns-icons {
+      display: flex;
+      align-items: center;
+      gap: .25rem;
+    }
+    .sns-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 3px;
+      color: var(--text-muted);
+      opacity: .6;
+      transition: opacity .2s, color .2s;
+    }
+    .sns-link:hover { opacity: 1; color: var(--text); }
+    .sns-link svg { width: 11px; height: 11px; fill: currentColor; }
+
+    .h-right {
+      display: flex;
+      align-items: center;
+      gap: .9rem;
+    }
+
+    /* 테마 동그라미 */
+    .theme-btns {
+      display: flex;
+      gap: .3rem;
+      align-items: center;
+    }
+    .tbtn {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      transition: border-color .2s, transform .15s;
+      outline: 1px solid rgba(0,0,0,0.12);
+      outline-offset: 0px;
+    }
+    .tbtn:hover { transform: scale(1.25); }
+    .tbtn.on { border-color: var(--text); outline-color: transparent; }
+    .tbtn-minimal { background: #fafafa; }
+    .tbtn-night   { background: #0f0e0c; outline-color: rgba(255,255,255,0.15); }
+    .tbtn-sepia   { background: #d4b896; outline-color: rgba(0,0,0,0.15); }
+    .tbtn-void    { background: linear-gradient(135deg,#07080f 50%,#1a2240); outline-color: rgba(94,200,232,0.2); }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+    }
     .header-nav a {
       font-size: 0.75rem;
       color: var(--text-muted);
@@ -236,19 +304,59 @@
       color: var(--text-muted);
       letter-spacing: 0.12em;
     }
+
+    /* ── 기본 body 변수 (JS 로드 전 flicker 방지) ── */
+    body { background: var(--bg); color: var(--text); }
+
+    @media(max-width:600px){
+      header { padding: 0 1rem; height: 52px; }
+      .hero { padding: 4.5rem 1.2rem 3rem; }
+      .works-section { padding: 0 1.2rem 5rem; }
+      .hero-title { font-size: 1.7rem; }
+      .tbtn { width: 13px; height: 13px; }
+      .card { grid-template-columns: 2rem 1fr auto; gap: .8rem; padding: 1.4rem 0; }
+    }
   </style>
 </head>
-<body>
+<body class="t-minimal">
 
   <!-- 배경 캔버스 -->
   <canvas id="bg-canvas"></canvas>
 
   <div class="page-wrap">
     <header>
-      <a href="index.html" class="site-name">soundcode808</a>
-      <nav class="header-nav">
-        <a href="admin.html">관리</a>
-      </nav>
+      <div class="brand-block">
+        <a href="index.html" class="site-name">soundcode808</a>
+        <div class="sns-icons">
+          <!-- Threads -->
+          <a class="sns-link" href="https://www.threads.com/@soundcode808" target="_blank" title="Threads">
+            <svg viewBox="0 0 24 24"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.687-1.685-1.76-1.753-3.018-.144-2.697 1.92-4.48 5.29-4.662 1.056-.057 2.074-.055 3.035.006-.12-.765-.339-1.38-.67-1.828-.438-.594-1.089-.895-1.978-.895h-.04c-.69.004-1.708.191-2.375 1.267l-1.783-1.043C8.051 5.667 9.521 4.904 11.3 4.863H11.36c1.726 0 3.077.64 3.912 1.85.72 1.033 1.08 2.476 1.072 4.29.7.485 1.276 1.075 1.7 1.79.718 1.225.934 2.602.623 3.998-.322 1.432-1.139 2.748-2.274 3.7-1.43 1.21-3.257 1.823-5.207 1.823zm-1.6-8.14c-.037.684.248 1.24.849 1.652.655.449 1.53.56 2.393.512 1.085-.06 1.884-.497 2.376-1.3.49-.797.693-1.873.614-3.282-.953-.085-2.016-.107-3.166-.046-2.192.117-3.116 1.1-3.066 2.464z"/></svg>
+          </a>
+          <!-- Instagram -->
+          <a class="sns-link" href="https://www.instagram.com/lilika0083" target="_blank" title="Instagram">
+            <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </a>
+          <!-- YouTube -->
+          <a class="sns-link" href="https://www.youtube.com/@soundcode606" target="_blank" title="YouTube">
+            <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          </a>
+          <!-- SoundCloud -->
+          <a class="sns-link" href="https://on.soundcloud.com/flPixldfCcXEYTdcte" target="_blank" title="SoundCloud">
+            <svg viewBox="0 0 24 24"><path d="M11.56 8.87V17h8.76c1.85 0 2.68-1.31 2.68-2.56 0-1.19-.82-2.31-2.03-2.51.12-.35.18-.72.18-1.11 0-2.01-1.63-3.63-3.64-3.63-.67 0-1.29.19-1.82.51A4.35 4.35 0 0 0 11.56 8.87zM0 15.24c0 .95.77 1.72 1.72 1.72s1.72-.77 1.72-1.72V12.9c0-.95-.77-1.72-1.72-1.72S0 11.95 0 12.9v2.34zm5.16 1.4c0 .95.77 1.72 1.72 1.72s1.72-.77 1.72-1.72V9.98c0-.95-.77-1.72-1.72-1.72s-1.72.77-1.72 1.72v6.66zm3.44.32c0 .95.77 1.72 1.72 1.72s1.72-.77 1.72-1.72V8.87c0-.95-.77-1.72-1.72-1.72s-1.72.77-1.72 1.72v8.09z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="h-right">
+        <div class="theme-btns">
+          <button class="tbtn tbtn-minimal on" title="Minimal" onclick="setTheme('minimal')"></button>
+          <button class="tbtn tbtn-night"       title="Night"   onclick="setTheme('night')"></button>
+          <button class="tbtn tbtn-sepia"       title="Sepia"   onclick="setTheme('sepia')"></button>
+          <button class="tbtn tbtn-void"        title="Void"    onclick="setTheme('void')"></button>
+        </div>
+        <nav class="header-nav">
+          <a href="admin.html">관리</a>
+        </nav>
+      </div>
     </header>
 
     <main>
@@ -274,55 +382,110 @@
 
   <script src="stories.js"></script>
   <script>
-    /* ── 배경 애니메이션 ──────────────────────── */
-    (function() {
+    /* ═══════════════════════════════════════════
+       배경 애니메이션 — 마우스 반응 파티클 필드
+       신비롭고 조용한 먼지 같은 흐름
+    ═══════════════════════════════════════════ */
+    (function () {
       const canvas = document.getElementById('bg-canvas');
       const ctx    = canvas.getContext('2d');
-      let W, H, lines;
+
+      let W, H, particles, mouse = { x: -9999, y: -9999 };
+      const COUNT     = 90;
+      const MOUSE_R   = 120;   // 마우스 영향 반경
+      const MOUSE_STR = 0.012; // 반발 강도
+      const LINK_DIST = 140;   // 연결선 거리
+      const LINK_MAX  = 3;     // 한 파티클 당 최대 연결 수
 
       function resize() {
         W = canvas.width  = window.innerWidth;
         H = canvas.height = window.innerHeight;
       }
 
-      function makeLine() {
-        const vertical = Math.random() > 0.5;
+      function makeParticle() {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 0.06 + Math.random() * 0.14;
         return {
-          vertical,
-          x:       vertical ? Math.random() * W : -W * 0.1,
-          y:       vertical ? -H * 0.1 : Math.random() * H,
-          length:  (0.3 + Math.random() * 0.5) * (vertical ? H : W),
-          speed:   0.08 + Math.random() * 0.15,
-          opacity: 0.03 + Math.random() * 0.07,
-          width:   0.4 + Math.random() * 0.8,
+          x:  Math.random() * W,
+          y:  Math.random() * H,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          r:  0.8 + Math.random() * 1.4,
+          op: 0.12 + Math.random() * 0.22,
         };
       }
 
-      function initLines() {
-        lines = Array.from({ length: 28 }, makeLine);
+      function init() {
+        particles = Array.from({ length: COUNT }, makeParticle);
       }
 
       function step() {
         ctx.clearRect(0, 0, W, H);
 
-        lines.forEach(l => {
-          ctx.save();
-          ctx.globalAlpha = l.opacity;
-          ctx.strokeStyle = '#aaaaaa';
-          ctx.lineWidth   = l.width;
-          ctx.beginPath();
-          if (l.vertical) {
-            ctx.moveTo(l.x, l.y);
-            ctx.lineTo(l.x, l.y + l.length);
-            l.y += l.speed;
-            if (l.y > H + 50) Object.assign(l, makeLine(), { vertical: true, y: -l.length, x: Math.random() * W });
-          } else {
-            ctx.moveTo(l.x, l.y);
-            ctx.lineTo(l.x + l.length, l.y);
-            l.x += l.speed;
-            if (l.x > W + 50) Object.assign(l, makeLine(), { vertical: false, x: -l.length, y: Math.random() * H });
+        /* 연결선 */
+        for (let i = 0; i < particles.length; i++) {
+          let links = 0;
+          const a = particles[i];
+          for (let j = i + 1; j < particles.length && links < LINK_MAX; j++) {
+            const b  = particles[j];
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const d  = Math.sqrt(dx * dx + dy * dy);
+            if (d < LINK_DIST) {
+              const alpha = (1 - d / LINK_DIST) * 0.06;
+              ctx.save();
+              ctx.globalAlpha = alpha;
+              ctx.strokeStyle = '#999';
+              ctx.lineWidth   = 0.4;
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.stroke();
+              ctx.restore();
+              links++;
+            }
           }
-          ctx.stroke();
+        }
+
+        /* 파티클 */
+        particles.forEach(p => {
+          /* 마우스 반발 */
+          const mdx = p.x - mouse.x;
+          const mdy = p.y - mouse.y;
+          const md  = Math.sqrt(mdx * mdx + mdy * mdy);
+          if (md < MOUSE_R && md > 0) {
+            const force = (1 - md / MOUSE_R) * MOUSE_STR;
+            p.vx += (mdx / md) * force;
+            p.vy += (mdy / md) * force;
+          }
+
+          /* 속도 감쇠 */
+          p.vx *= 0.998;
+          p.vy *= 0.998;
+
+          /* 최소 속도 유지 */
+          const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+          if (spd < 0.05) {
+            p.vx += (Math.random() - 0.5) * 0.04;
+            p.vy += (Math.random() - 0.5) * 0.04;
+          }
+
+          p.x += p.vx;
+          p.y += p.vy;
+
+          /* 화면 경계 — 부드럽게 wrap */
+          if (p.x < -10) p.x = W + 10;
+          if (p.x > W + 10) p.x = -10;
+          if (p.y < -10) p.y = H + 10;
+          if (p.y > H + 10) p.y = -10;
+
+          /* 그리기 */
+          ctx.save();
+          ctx.globalAlpha = p.op;
+          ctx.fillStyle   = '#888';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
           ctx.restore();
         });
 
@@ -330,13 +493,54 @@
       }
 
       window.addEventListener('resize', () => { resize(); });
+      window.addEventListener('mousemove', e => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+      });
+      window.addEventListener('mouseleave', () => {
+        mouse.x = -9999;
+        mouse.y = -9999;
+      });
+      /* 모바일 터치 대응 */
+      window.addEventListener('touchmove', e => {
+        const t = e.touches[0];
+        mouse.x = t.clientX;
+        mouse.y = t.clientY;
+      }, { passive: true });
+      window.addEventListener('touchend', () => {
+        mouse.x = -9999;
+        mouse.y = -9999;
+      });
+
       resize();
-      initLines();
+      init();
       step();
     })();
 
-    /* ── 작품 렌더링 ─────────────────────────── */
-    const THEME_LABELS = { minimal: 'Minimal', night: 'Night', sepia: 'Sepia' };
+    /* ═══════════════════════════════════════════
+       테마 전환
+    ═══════════════════════════════════════════ */
+    const THEMES = ['minimal','night','sepia','void'];
+
+    function setTheme(t) {
+      THEMES.forEach(n => document.body.classList.remove('t-' + n));
+      document.body.classList.add('t-' + t);
+      localStorage.setItem('sc808_theme', t);
+      document.querySelectorAll('.tbtn').forEach(b => {
+        b.classList.toggle('on', b.classList.contains('tbtn-' + t));
+      });
+    }
+
+    /* 저장된 테마 복원 */
+    (function () {
+      const saved = localStorage.getItem('sc808_theme');
+      if (saved && THEMES.includes(saved)) setTheme(saved);
+    })();
+
+    /* ═══════════════════════════════════════════
+       작품 렌더링
+    ═══════════════════════════════════════════ */
+    const THEME_LABELS = { minimal: 'Minimal', night: 'Night', sepia: 'Sepia', void: 'Void' };
 
     function render() {
       const list    = document.getElementById('card-list');
