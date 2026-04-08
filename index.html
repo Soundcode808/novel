@@ -383,138 +383,182 @@
   <script src="stories.js"></script>
   <script>
     /* ═══════════════════════════════════════════
-       배경 애니메이션 — 마우스 반응 파티클 필드
-       신비롭고 조용한 먼지 같은 흐름
+       배경 애니메이션
+       Layer 1 — 보케 오브 (아웃포커싱 느낌)
+       Layer 2 — 노이즈 플로우 파티클 (연기·안개)
+       마우스: 파티클에 소용돌이 효과
     ═══════════════════════════════════════════ */
     (function () {
       const canvas = document.getElementById('bg-canvas');
       const ctx    = canvas.getContext('2d');
 
-      let W, H, particles, mouse = { x: -9999, y: -9999 };
-      const COUNT     = 90;
-      const MOUSE_R   = 120;   // 마우스 영향 반경
-      const MOUSE_STR = 0.012; // 반발 강도
-      const LINK_DIST = 140;   // 연결선 거리
-      const LINK_MAX  = 3;     // 한 파티클 당 최대 연결 수
+      let W, H, orbs, particles;
+      let T = 0;
+      let mouse = { x: -9999, y: -9999 };
 
+      /* ── 리사이즈 ──────────────────────────── */
       function resize() {
         W = canvas.width  = window.innerWidth;
         H = canvas.height = window.innerHeight;
       }
 
-      function makeParticle() {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 0.06 + Math.random() * 0.14;
+      /* ── 노이즈 플로우 필드 (삼각함수 합성) ──── */
+      function flowAngle(x, y) {
+        const s = 0.0032;
+        return (
+          Math.sin(x * s + T * 0.16) * Math.cos(y * s * 0.75 - T * 0.11) +
+          Math.sin((x + y) * s * 0.6  + T * 0.07) * 0.55 +
+          Math.cos(x * s * 1.2 - y * s * 0.85 - T * 0.055) * 0.35
+        ) * Math.PI;
+      }
+
+      /* ── 보케 오브 (레이어 1) ─────────────── */
+      function makeOrb() {
         return {
-          x:  Math.random() * W,
-          y:  Math.random() * H,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          r:  0.8 + Math.random() * 1.4,
-          op: 0.12 + Math.random() * 0.22,
+          x:     Math.random() * W,
+          y:     Math.random() * H,
+          r:     90 + Math.random() * 160,
+          vx:    (Math.random() - 0.5) * 0.18,
+          vy:    (Math.random() - 0.5) * 0.18,
+          phase: Math.random() * Math.PI * 2,
+          spd:   0.0025 + Math.random() * 0.003,
+          op:    0.018  + Math.random() * 0.022,
+        };
+      }
+
+      /* ── 플로우 파티클 (레이어 2) ─────────── */
+      function makeParticle() {
+        return {
+          x:       Math.random() * W,
+          y:       Math.random() * H,
+          vx:      0, vy: 0,
+          life:    Math.random(),
+          maxLife: 0.55 + Math.random() * 0.45,
+          spd:     0.28 + Math.random() * 0.45,
+          r:       0.5  + Math.random() * 1.1,
+          op:      0.055 + Math.random() * 0.1,
         };
       }
 
       function init() {
-        particles = Array.from({ length: COUNT }, makeParticle);
+        orbs      = Array.from({ length: 9  }, makeOrb);
+        particles = Array.from({ length: 200 }, makeParticle);
       }
 
+      /* ── 테마별 색상 ─────────────────────── */
+      function themeColors() {
+        const b = document.body;
+        if (b.classList.contains('t-void'))  return { orb:'70,130,200',  dot:'60,120,190',  glow:true  };
+        if (b.classList.contains('t-night')) return { orb:'210,190,160', dot:'185,165,135', glow:false };
+        if (b.classList.contains('t-sepia')) return { orb:'160,125,90',  dot:'130,100,72',  glow:false };
+        return { orb:'150,150,150', dot:'100,100,100', glow:false }; // minimal
+      }
+
+      /* ── 매 프레임 ────────────────────────── */
       function step() {
         ctx.clearRect(0, 0, W, H);
+        T += 0.007;
 
-        /* 연결선 */
-        for (let i = 0; i < particles.length; i++) {
-          let links = 0;
-          const a = particles[i];
-          for (let j = i + 1; j < particles.length && links < LINK_MAX; j++) {
-            const b  = particles[j];
-            const dx = b.x - a.x;
-            const dy = b.y - a.y;
-            const d  = Math.sqrt(dx * dx + dy * dy);
-            if (d < LINK_DIST) {
-              const alpha = (1 - d / LINK_DIST) * 0.06;
-              ctx.save();
-              ctx.globalAlpha = alpha;
-              ctx.strokeStyle = '#999';
-              ctx.lineWidth   = 0.4;
-              ctx.beginPath();
-              ctx.moveTo(a.x, a.y);
-              ctx.lineTo(b.x, b.y);
-              ctx.stroke();
-              ctx.restore();
-              links++;
-            }
+        const C = themeColors();
+
+        /* ─ 보케 오브 ─ */
+        orbs.forEach(o => {
+          o.phase += o.spd;
+
+          /* 마우스 밀기 */
+          const dx = o.x - mouse.x, dy = o.y - mouse.y;
+          const d  = Math.sqrt(dx * dx + dy * dy);
+          if (d < 320 && d > 0) {
+            o.vx += (dx / d) * 0.006;
+            o.vy += (dy / d) * 0.006;
           }
-        }
+          o.vx *= 0.992; o.vy *= 0.992;
+          o.x  += o.vx;  o.y  += o.vy;
 
-        /* 파티클 */
+          if (o.x < -220) o.x = W + 220;
+          if (o.x > W + 220) o.x = -220;
+          if (o.y < -220) o.y = H + 220;
+          if (o.y > H + 220) o.y = -220;
+
+          /* 부드럽게 숨쉬는 반경 */
+          const r = o.r * (1 + Math.sin(o.phase) * 0.07);
+
+          /* Void: 글로우 효과 */
+          if (C.glow) { ctx.shadowBlur = 40; ctx.shadowColor = `rgba(${C.orb},0.12)`; }
+
+          /* 방사형 그라디언트 (보케 핵심) */
+          const g = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, r);
+          g.addColorStop(0,   `rgba(${C.orb},${o.op * 1.2})`);
+          g.addColorStop(0.35,`rgba(${C.orb},${o.op * 0.8})`);
+          g.addColorStop(0.7, `rgba(${C.orb},${o.op * 0.3})`);
+          g.addColorStop(1,   `rgba(${C.orb},0)`);
+
+          ctx.beginPath();
+          ctx.arc(o.x, o.y, r, 0, Math.PI * 2);
+          ctx.fillStyle = g;
+          ctx.fill();
+
+          if (C.glow) { ctx.shadowBlur = 0; ctx.shadowColor = 'transparent'; }
+        });
+
+        /* ─ 플로우 파티클 ─ */
         particles.forEach(p => {
-          /* 마우스 반발 */
-          const mdx = p.x - mouse.x;
-          const mdy = p.y - mouse.y;
-          const md  = Math.sqrt(mdx * mdx + mdy * mdy);
-          if (md < MOUSE_R && md > 0) {
-            const force = (1 - md / MOUSE_R) * MOUSE_STR;
-            p.vx += (mdx / md) * force;
-            p.vy += (mdy / md) * force;
+          p.life += 0.0035;
+          if (p.life > p.maxLife) {
+            Object.assign(p, makeParticle());
+            p.x = Math.random() * W; p.y = Math.random() * H; p.life = 0;
+            return;
           }
 
-          /* 속도 감쇠 */
-          p.vx *= 0.998;
-          p.vy *= 0.998;
+          /* 플로우 필드 */
+          const ang = flowAngle(p.x, p.y);
+          p.vx += Math.cos(ang) * 0.012 * p.spd;
+          p.vy += Math.sin(ang) * 0.012 * p.spd;
 
-          /* 최소 속도 유지 */
-          const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-          if (spd < 0.05) {
-            p.vx += (Math.random() - 0.5) * 0.04;
-            p.vy += (Math.random() - 0.5) * 0.04;
+          /* 마우스 소용돌이 */
+          const mx = p.x - mouse.x, my = p.y - mouse.y;
+          const md = Math.sqrt(mx * mx + my * my);
+          if (md < 160 && md > 0) {
+            const f = (1 - md / 160) * 0.038;
+            p.vx += (-my / md) * f;
+            p.vy += ( mx / md) * f;
           }
 
-          p.x += p.vx;
-          p.y += p.vy;
+          p.vx *= 0.955; p.vy *= 0.955;
 
-          /* 화면 경계 — 부드럽게 wrap */
-          if (p.x < -10) p.x = W + 10;
-          if (p.x > W + 10) p.x = -10;
-          if (p.y < -10) p.y = H + 10;
-          if (p.y > H + 10) p.y = -10;
+          if (Math.sqrt(p.vx*p.vx + p.vy*p.vy) < 0.18) {
+            p.vx += Math.cos(ang) * 0.04;
+            p.vy += Math.sin(ang) * 0.04;
+          }
 
-          /* 그리기 */
-          ctx.save();
-          ctx.globalAlpha = p.op;
-          ctx.fillStyle   = '#888';
+          p.x += p.vx; p.y += p.vy;
+
+          if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+          if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+
+          /* 생애 페이드 */
+          const lp   = p.life / p.maxLife;
+          const fade = lp < 0.18 ? lp / 0.18 : lp > 0.78 ? (1 - lp) / 0.22 : 1;
+
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${C.dot},${p.op * fade})`;
           ctx.fill();
-          ctx.restore();
         });
 
         requestAnimationFrame(step);
       }
 
-      window.addEventListener('resize', () => { resize(); });
-      window.addEventListener('mousemove', e => {
-        mouse.x = e.clientX;
-        mouse.y = e.clientY;
-      });
-      window.addEventListener('mouseleave', () => {
-        mouse.x = -9999;
-        mouse.y = -9999;
-      });
-      /* 모바일 터치 대응 */
+      /* ── 이벤트 ───────────────────────────── */
+      window.addEventListener('resize', resize);
+      window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+      window.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
       window.addEventListener('touchmove', e => {
-        const t = e.touches[0];
-        mouse.x = t.clientX;
-        mouse.y = t.clientY;
+        mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY;
       }, { passive: true });
-      window.addEventListener('touchend', () => {
-        mouse.x = -9999;
-        mouse.y = -9999;
-      });
+      window.addEventListener('touchend', () => { mouse.x = -9999; mouse.y = -9999; });
 
-      resize();
-      init();
-      step();
+      resize(); init(); step();
     })();
 
     /* ═══════════════════════════════════════════

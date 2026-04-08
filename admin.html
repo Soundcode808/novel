@@ -89,6 +89,26 @@
       display: none;
     }
 
+    .login-remember {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.9rem;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+    .login-remember input { accent-color: var(--text-sub); cursor: pointer; }
+
+    .login-lockout {
+      font-size: 0.72rem;
+      color: var(--danger);
+      margin-top: 0.6rem;
+      display: none;
+      line-height: 1.6;
+    }
+
     .btn {
       display: inline-flex;
       align-items: center;
@@ -384,9 +404,14 @@
         <input class="form-input" id="inp-pw" type="password" placeholder="Password" autocomplete="off">
       </div>
 
-      <p class="login-error" id="login-error">ID 또는 비밀번호가 올바르지 않습니다.</p>
+      <p class="login-error"   id="login-error">ID 또는 비밀번호가 올바르지 않습니다.</p>
+      <p class="login-lockout" id="login-lockout"></p>
 
-      <button class="btn btn-primary" onclick="doLogin()">로그인</button>
+      <label class="login-remember">
+        <input type="checkbox" id="chk-remember"> 로그인 상태 유지
+      </label>
+
+      <button class="btn btn-primary" id="btn-login" onclick="doLogin()">로그인</button>
     </div>
   </div>
 
@@ -507,30 +532,144 @@
 
   <script src="stories.js"></script>
   <script>
-    /* ── 인증 ─────────────────────────────────── */
-    const CREDS = { id: 'dsd660', pw: 'dltngh22' };
-    let isLoggedIn = false;
+    /* ══════════════════════════════════════════
+       보안 설정
+       - SHA-256 해시 비교 (평문 노출 방지)
+       - 로그인 시도 제한: 5회 실패 → 15분 잠금
+       - 세션 타임아웃: 2시간 비활성 → 자동 로그아웃
+       - 로그인 상태 유지 (체크박스)
+    ══════════════════════════════════════════ */
+    const ID_HASH = 'bc8f4c4643994747f7786686d78d35dea17b8ca8494b4a0784900bf65dd2043e';
+    const PW_HASH = 'c7401f665f59ed2a1b384b1f0501285675b9ef88b1f52e77491f3c941226d79a';
+    const MAX_TRIES   = 5;
+    const LOCK_MS     = 15 * 60 * 1000;   // 15분
+    const SESSION_MS  = 2  * 60 * 60 * 1000; // 2시간
 
-    function doLogin() {
+    let isLoggedIn = false;
+    let sessionTimer = null;
+
+    /* SHA-256 (Web Crypto API) */
+    async function sha256(str) {
+      const buf = await crypto.subtle.digest('SHA-256',
+        new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf))
+        .map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+
+    /* ── 잠금 상태 확인 ─────────────────────── */
+    function isLocked() {
+      const lock = parseInt(localStorage.getItem('sc808_lockuntil') || '0');
+      return Date.now() < lock;
+    }
+    function getRemainingLock() {
+      const lock = parseInt(localStorage.getItem('sc808_lockuntil') || '0');
+      const rem  = Math.ceil((lock - Date.now()) / 60000);
+      return rem > 0 ? rem : 0;
+    }
+    function addFailure() {
+      let n = parseInt(localStorage.getItem('sc808_fails') || '0') + 1;
+      localStorage.setItem('sc808_fails', n);
+      if (n >= MAX_TRIES) {
+        localStorage.setItem('sc808_lockuntil', Date.now() + LOCK_MS);
+        localStorage.setItem('sc808_fails', '0');
+      }
+      return n;
+    }
+    function clearFailures() {
+      localStorage.removeItem('sc808_fails');
+      localStorage.removeItem('sc808_lockuntil');
+    }
+
+    /* ── 세션 타임아웃 ──────────────────────── */
+    function resetSessionTimer() {
+      clearTimeout(sessionTimer);
+      sessionTimer = setTimeout(() => {
+        if (isLoggedIn) { doLogout(); showLoginMsg('장시간 미사용으로 자동 로그아웃되었습니다.'); }
+      }, SESSION_MS);
+      localStorage.setItem('sc808_activity', Date.now());
+    }
+    ['click','keydown','scroll','mousemove'].forEach(ev =>
+      document.addEventListener(ev, () => { if (isLoggedIn) resetSessionTimer(); }, { passive: true })
+    );
+
+    /* ── 로그인 ─────────────────────────────── */
+    async function doLogin() {
+      if (isLocked()) {
+        showLockout(`잠금 상태입니다. ${getRemainingLock()}분 후 재시도하세요.`);
+        return;
+      }
+
       const id = document.getElementById('inp-id').value.trim();
       const pw = document.getElementById('inp-pw').value;
-      if (id === CREDS.id && pw === CREDS.pw) {
+      const btn = document.getElementById('btn-login');
+      btn.disabled = true; btn.textContent = '확인 중…';
+
+      const [hId, hPw] = await Promise.all([sha256(id), sha256(pw)]);
+      btn.disabled = false; btn.textContent = '로그인';
+
+      if (hId === ID_HASH && hPw === PW_HASH) {
+        clearFailures();
         isLoggedIn = true;
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('admin-screen').style.display = 'block';
-        renderWorkList();
+        if (document.getElementById('chk-remember').checked) {
+          localStorage.setItem('sc808_admin_auth', '1');
+        }
+        enterAdmin();
       } else {
-        document.getElementById('login-error').style.display = 'block';
+        const n = addFailure();
+        if (isLocked()) {
+          showLockout(`로그인 ${MAX_TRIES}회 실패. 15분간 잠깁니다.`);
+        } else {
+          document.getElementById('login-error').style.display = 'block';
+          document.getElementById('login-error').textContent =
+            `ID 또는 비밀번호가 올바르지 않습니다. (${MAX_TRIES - n}회 남음)`;
+        }
       }
     }
 
+    function enterAdmin() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-screen').style.display = 'block';
+      document.getElementById('login-error').style.display = 'none';
+      document.getElementById('login-lockout').style.display = 'none';
+      resetSessionTimer();
+      renderWorkList();
+    }
+
+    function showLoginMsg(msg) {
+      const el = document.getElementById('login-error');
+      el.style.display = 'block'; el.style.color = 'var(--text-muted)';
+      el.textContent = msg;
+    }
+    function showLockout(msg) {
+      document.getElementById('login-lockout').style.display = 'block';
+      document.getElementById('login-lockout').textContent = msg;
+      document.getElementById('login-error').style.display = 'none';
+      document.getElementById('btn-login').disabled = true;
+      setTimeout(() => {
+        document.getElementById('btn-login').disabled = false;
+        document.getElementById('login-lockout').style.display = 'none';
+      }, getRemainingLock() * 60000);
+    }
+
+    /* ── 로그아웃 ───────────────────────────── */
     function doLogout() {
       isLoggedIn = false;
+      clearTimeout(sessionTimer);
+      localStorage.removeItem('sc808_admin_auth');
       document.getElementById('admin-screen').style.display = 'none';
       document.getElementById('login-screen').style.display = 'flex';
       document.getElementById('inp-id').value = '';
       document.getElementById('inp-pw').value = '';
     }
+
+    /* ── 페이지 로드 시 자동 로그인 ─────────── */
+    (function () {
+      if (localStorage.getItem('sc808_admin_auth') === '1') {
+        isLoggedIn = true;
+        enterAdmin();
+      }
+      if (isLocked()) showLockout(`잠금 상태. ${getRemainingLock()}분 후 재시도하세요.`);
+    })();
 
     document.getElementById('inp-pw').addEventListener('keydown', e => {
       if (e.key === 'Enter') doLogin();

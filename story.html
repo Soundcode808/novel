@@ -205,6 +205,10 @@
     .story-body {
       font-size:1rem; line-height:var(--lh);
       letter-spacing:var(--ls); color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+      font-feature-settings:'kern' 1,'liga' 1,'calt' 1;
+      widows:3; orphans:3;
     }
     .story-body p { margin-bottom:1.6rem; }
     .story-body p:last-child { margin-bottom:0; }
@@ -240,6 +244,72 @@
 
     .story-body em { font-style:italic; color:var(--text-sub); }
     body.t-void .story-body em { font-style:normal; color:var(--accent); opacity:.85; }
+
+    /* ══ 텍스트 선택 색상 ═══════════════════════ */
+    body.t-minimal ::selection { background:rgba(28,28,30,.1); }
+    body.t-night   ::selection { background:rgba(232,216,184,.2); }
+    body.t-sepia   ::selection { background:rgba(122,64,32,.15); color:var(--text); }
+    body.t-void    ::selection { background:rgba(94,200,232,.2); }
+
+    /* ══ 오프닝 워즈 (첫 문단 도입부) ══════════ */
+    .opening-words {
+      letter-spacing:.045em; font-weight:500;
+    }
+    body.t-night .opening-words { font-weight:400; letter-spacing:.06em; color:var(--text); }
+    body.t-sepia .opening-words {
+      font-variant:small-caps; letter-spacing:.07em; font-style:normal;
+    }
+    body.t-void  .opening-words { color:var(--text); opacity:.9; letter-spacing:.05em; }
+
+    /* ══ 풀 쿼트 ═══════════════════════════════ */
+    .pull-quote {
+      margin:3rem 0; padding:2.2rem 2rem;
+      text-align:center;
+      font-size:1.15em; font-style:italic; line-height:1.65;
+      color:var(--text-sub);
+      border-top:1px solid var(--border);
+      border-bottom:1px solid var(--border);
+      position:relative;
+    }
+    .pull-quote::before {
+      content:'\201C';
+      display:block; font-size:3rem; line-height:.6;
+      color:var(--text-muted); margin-bottom:.8rem;
+      font-family:Georgia,serif; font-style:normal;
+    }
+    body.t-night .pull-quote {
+      border-top:none; border-bottom:none;
+      border-left:2px solid rgba(232,216,184,.18);
+      border-right:2px solid rgba(232,216,184,.18);
+      text-align:left; padding:1.4rem 2rem;
+    }
+    body.t-night .pull-quote::before { color:var(--text-muted); }
+    body.t-sepia .pull-quote {
+      font-family:'IM Fell English',serif; font-size:1.2em;
+      border-color:var(--hr-clr);
+    }
+    body.t-void  .pull-quote {
+      border-color:transparent;
+      color:var(--accent); opacity:.8;
+      font-style:normal; font-size:1.08em; letter-spacing:.04em;
+    }
+    body.t-void  .pull-quote::before { color:var(--accent); opacity:.25; }
+
+    /* ══ 섹션 제목 (## 문법) ════════════════════ */
+    .section-head {
+      font-family:var(--font-mono); font-size:.6rem;
+      letter-spacing:.22em; text-transform:uppercase;
+      color:var(--text-muted); margin:3.5rem 0 1.8rem;
+      display:flex; align-items:center; gap:1rem;
+      font-weight:400; font-style:normal;
+    }
+    .section-head::before,
+    .section-head::after { content:''; flex:1; height:1px; background:var(--border); }
+    body.t-void .section-head { color:var(--accent); opacity:.45; }
+    body.t-void .section-head::before,
+    body.t-void .section-head::after {
+      background:linear-gradient(90deg,transparent,var(--accent)); opacity:.2;
+    }
 
     /* ══ 공유 버튼 ════════════════════════════ */
     .share-row {
@@ -499,10 +569,40 @@
       text.split(/\n\n+/).forEach(block => {
         const t = block.trim();
         if (!t) return;
+
+        // 씬 구분
         if (t === '---') { html += '<hr class="scene-br">'; return; }
+
+        // 섹션 제목: ## 제목
+        if (t.startsWith('##')) {
+          const h = t.slice(2).trim();
+          html += `<h3 class="section-head"><span>${h}</span></h3>`;
+          return;
+        }
+
+        // 풀 쿼트: >>인용문<<
+        if (t.startsWith('>>') && t.endsWith('<<')) {
+          const q = t.slice(2, -2).trim();
+          html += `<blockquote class="pull-quote">${q}</blockquote>`;
+          return;
+        }
+
+        // 인라인 서식
         let p = t.replace(/\*([^*\n]+)\*/g, '<em>$1</em>').replace(/\n/g,'<br>');
-        if (first) { html += `<p class="first-para">${p}</p>`; first=false; }
-        else html += `<p>${p}</p>`;
+
+        if (first) {
+          // 첫 문단 — 앞 3단어를 opening-words로 감싸기
+          const words = p.split(' ');
+          if (words.length > 4) {
+            const open = words.slice(0, 3).join(' ');
+            const rest = words.slice(3).join(' ');
+            p = `<span class="opening-words">${open}</span> ${rest}`;
+          }
+          html += `<p class="first-para">${p}</p>`;
+          first = false;
+        } else {
+          html += `<p>${p}</p>`;
+        }
       });
       return html;
     }
