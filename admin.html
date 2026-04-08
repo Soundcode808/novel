@@ -233,6 +233,7 @@
     .badge-minimal { background: #2a2a2a; color: #aaa; }
     .badge-night   { background: #151525; color: #7c7ccc; }
     .badge-sepia   { background: #2a2218; color: #c8a86a; }
+    .badge-void    { background: #0a0e1a; color: #5ec8e8; }
 
     /* EDITOR */
     .editor-card {
@@ -282,7 +283,7 @@
 
     .theme-selector {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 0.5rem;
     }
 
@@ -311,6 +312,7 @@
     .preview-minimal { background: linear-gradient(135deg, #fafafa 50%, #f0f0f0 100%); }
     .preview-night   { background: linear-gradient(135deg, #0a0a12 50%, #12121e 100%); }
     .preview-sepia   { background: linear-gradient(135deg, #f5f0e8 50%, #ede5d6 100%); }
+    .preview-void    { background: linear-gradient(135deg, #07080f 40%, #1a2240 100%); }
 
     .editor-footer {
       padding: 1rem 1.5rem;
@@ -459,6 +461,10 @@
                   <span class="theme-option-name">Sepia</span>
                   <div class="theme-option-preview preview-sepia"></div>
                 </div>
+                <div class="theme-option" data-theme="void" onclick="selectTheme(this)">
+                  <span class="theme-option-name">Void</span>
+                  <div class="theme-option-preview preview-void"></div>
+                </div>
               </div>
             </div>
 
@@ -556,7 +562,7 @@
         return;
       }
 
-      const BADGE = { minimal:'badge-minimal', night:'badge-night', sepia:'badge-sepia' };
+      const BADGE = { minimal:'badge-minimal', night:'badge-night', sepia:'badge-sepia', void:'badge-void' };
 
       el.innerHTML = stories.map((s, i) => `
         <div class="work-item" onclick="openEditEditor(${i})">
