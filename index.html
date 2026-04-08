@@ -383,193 +383,143 @@
   <script src="stories.js"></script>
   <script>
     /* ═══════════════════════════════════════════
-       배경 애니메이션
-       Layer 1 — 보케 오브 (아웃포커싱 느낌)
-       Layer 2 — 노이즈 플로우 파티클 (연기·안개)
-       마우스: 파티클에 소용돌이 효과
+       배경 애니메이션 — DNA 이중나선 (아웃포커싱)
+       매우 천천히 회전 (~90초/1회전)
+       가까운 점은 크고 밝게 + 보케 헤일로
+       먼 점은 작고 희미하게 (심도 표현)
     ═══════════════════════════════════════════ */
     (function () {
       const canvas = document.getElementById('bg-canvas');
       const ctx    = canvas.getContext('2d');
+      let W, H, T = 0;
 
-      let W, H, orbs, particles;
-      let T = 0;
-      let mouse = { x: -9999, y: -9999 };
-
-      /* ── 리사이즈 ──────────────────────────── */
       function resize() {
         W = canvas.width  = window.innerWidth;
         H = canvas.height = window.innerHeight;
       }
 
-      /* ── 노이즈 플로우 필드 (삼각함수 합성) ──── */
-      function flowAngle(x, y) {
-        const s = 0.0032;
-        return (
-          Math.sin(x * s + T * 0.16) * Math.cos(y * s * 0.75 - T * 0.11) +
-          Math.sin((x + y) * s * 0.6  + T * 0.07) * 0.55 +
-          Math.cos(x * s * 1.2 - y * s * 0.85 - T * 0.055) * 0.35
-        ) * Math.PI;
-      }
-
-      /* ── 보케 오브 (레이어 1) ─────────────── */
-      function makeOrb() {
-        return {
-          x:     Math.random() * W,
-          y:     Math.random() * H,
-          r:     100 + Math.random() * 180,
-          vx:    (Math.random() - 0.5) * 0.18,
-          vy:    (Math.random() - 0.5) * 0.18,
-          phase: Math.random() * Math.PI * 2,
-          spd:   0.0025 + Math.random() * 0.003,
-          op:    0.04   + Math.random() * 0.05,
-        };
-      }
-
-      /* ── 플로우 파티클 (레이어 2) ─────────── */
-      function makeParticle() {
-        return {
-          x:       Math.random() * W,
-          y:       Math.random() * H,
-          vx:      0, vy: 0,
-          life:    Math.random(),
-          maxLife: 0.55 + Math.random() * 0.45,
-          spd:     0.3  + Math.random() * 0.5,
-          r:       0.8  + Math.random() * 1.4,
-          op:      0.13 + Math.random() * 0.18,
-        };
-      }
-
-      function init() {
-        orbs      = Array.from({ length: 10  }, makeOrb);
-        particles = Array.from({ length: 220 }, makeParticle);
-      }
-
-      /* ── 테마별 배경색 (트레일용) ─────────── */
-      function trailBg() {
+      function toneColors() {
         const b = document.body;
-        if (b.classList.contains('t-void'))  return 'rgba(7,8,15,0.07)';
-        if (b.classList.contains('t-night')) return 'rgba(15,14,12,0.07)';
-        if (b.classList.contains('t-sepia')) return 'rgba(242,234,216,0.07)';
-        return 'rgba(250,250,250,0.07)';
+        if (b.classList.contains('t-void'))  return ['70,130,205', '40,90,170'];
+        if (b.classList.contains('t-night')) return ['210,188,152', '168,142,108'];
+        if (b.classList.contains('t-sepia')) return ['138,106,70',  '108,80,48' ];
+        return ['90,90,90', '140,140,140'];
       }
 
-      /* ── 테마별 색상 ─────────────────────── */
-      function themeColors() {
-        const b = document.body;
-        if (b.classList.contains('t-void'))  return { orb:'70,130,200',  dot:'60,120,190',  glow:true  };
-        if (b.classList.contains('t-night')) return { orb:'210,190,160', dot:'185,165,135', glow:false };
-        if (b.classList.contains('t-sepia')) return { orb:'160,125,90',  dot:'130,100,72',  glow:false };
-        return { orb:'150,150,150', dot:'100,100,100', glow:false }; // minimal
+      /* ── 3D 변환 + 원근 투영 ─────────────── */
+      const TILT  = Math.PI / 5.5; // ~33° 기울기 (위쪽이 가까이)
+      const CAMD  = 680;           // 카메라 거리 (원근 강도)
+
+      function project(mx, my, mz) {
+        // X축 회전: 헬릭스 위를 앞으로 기울임
+        const ry =  my * Math.cos(TILT) - mz * Math.sin(TILT);
+        const rz =  my * Math.sin(TILT) + mz * Math.cos(TILT);
+        const rx =  mx;
+        // 원근 투영
+        const pv = CAMD / (CAMD + rz);
+        return { sx: W / 2 + rx * pv, sy: H / 2 + ry * pv, rz, pv };
       }
 
-      /* ── 매 프레임 ────────────────────────── */
       function step() {
-        /* clearRect 대신 반투명 오버레이 → 잔상(트레일) 효과 */
-        ctx.fillStyle = trailBg();
-        ctx.fillRect(0, 0, W, H);
-        T += 0.007;
+        ctx.clearRect(0, 0, W, H);
+        T += 0.0011;
 
-        const C = themeColors();
+        const [c0, c1] = toneColors();
+        const R     = Math.max(46, Math.min(74, W * 0.052));
+        const hH    = H * 0.9;
+        const TURNS = 5.5;
+        const N     = 210;
+        const RUNGS = 23;
 
-        /* ─ 보케 오브 ─ */
-        orbs.forEach(o => {
-          o.phase += o.spd;
+        const items = [];
 
-          /* 마우스 밀기 */
-          const dx = o.x - mouse.x, dy = o.y - mouse.y;
-          const d  = Math.sqrt(dx * dx + dy * dy);
-          if (d < 320 && d > 0) {
-            o.vx += (dx / d) * 0.006;
-            o.vy += (dy / d) * 0.006;
+        /* ─ 두 가닥 ─ */
+        for (let s = 0; s < 2; s++) {
+          for (let i = 0; i < N; i++) {
+            const tn  = i / N;
+            const ang = tn * TURNS * Math.PI * 2 + T + (s === 1 ? Math.PI : 0);
+            const { sx, sy, rz, pv } = project(
+              Math.cos(ang) * R,
+              (tn - 0.5) * hH,
+              Math.sin(ang) * R
+            );
+            items.push({ type: 'dot', s, x: sx, y: sy, z: rz, pv });
           }
-          o.vx *= 0.992; o.vy *= 0.992;
-          o.x  += o.vx;  o.y  += o.vy;
+        }
 
-          if (o.x < -220) o.x = W + 220;
-          if (o.x > W + 220) o.x = -220;
-          if (o.y < -220) o.y = H + 220;
-          if (o.y > H + 220) o.y = -220;
+        /* ─ 염기쌍 가로선 ─ */
+        for (let r = 0; r < RUNGS; r++) {
+          const tn   = (r + 0.5) / RUNGS;
+          const base = tn * TURNS * Math.PI * 2 + T;
+          const my   = (tn - 0.5) * hH;
+          const a0   = project(Math.cos(base)       * R, my, Math.sin(base)       * R);
+          const a1   = project(Math.cos(base + Math.PI) * R, my, Math.sin(base + Math.PI) * R);
+          items.push({
+            type: 'rung',
+            x0: a0.sx, y0: a0.sy, z0: a0.rz, pv0: a0.pv,
+            x1: a1.sx, y1: a1.sy, z1: a1.rz, pv1: a1.pv,
+            z: (a0.rz + a1.rz) / 2,
+          });
+        }
 
-          /* 부드럽게 숨쉬는 반경 */
-          const r = o.r * (1 + Math.sin(o.phase) * 0.07);
+        /* ─ 뒤 → 앞 정렬 ─ */
+        items.sort((a, b) => a.z - b.z);
 
-          /* Void: 글로우 효과 */
-          if (C.glow) { ctx.shadowBlur = 40; ctx.shadowColor = `rgba(${C.orb},0.12)`; }
+        /* ─ z 범위 정규화 ─ */
+        const zAll  = items.map(i => i.z);
+        const zMin  = Math.min(...zAll);
+        const zMax  = Math.max(...zAll);
+        const zSpan = zMax - zMin || 1;
 
-          /* 방사형 그라디언트 (보케 핵심) */
-          const g = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, r);
-          g.addColorStop(0,   `rgba(${C.orb},${o.op * 1.2})`);
-          g.addColorStop(0.35,`rgba(${C.orb},${o.op * 0.8})`);
-          g.addColorStop(0.7, `rgba(${C.orb},${o.op * 0.3})`);
-          g.addColorStop(1,   `rgba(${C.orb},0)`);
+        items.forEach(it => {
+          const d = (it.z - zMin) / zSpan; // 0=뒤(먼), 1=앞(가까움)
 
-          ctx.beginPath();
-          ctx.arc(o.x, o.y, r, 0, Math.PI * 2);
-          ctx.fillStyle = g;
-          ctx.fill();
+          if (it.type === 'dot') {
+            const r   = 0.6 + d * 3.4;
+            const op  = 0.016 + d * 0.22;
+            const col = it.s === 0 ? c0 : c1;
 
-          if (C.glow) { ctx.shadowBlur = 0; ctx.shadowColor = 'transparent'; }
-        });
+            /* 아웃포커싱 보케 헤일로 — 가까운 점에만 */
+            if (d > 0.48) {
+              const spread = (d - 0.48) / 0.52;
+              const hR = r + spread * 22;
+              const g  = ctx.createRadialGradient(it.x, it.y, r * 0.15, it.x, it.y, hR);
+              g.addColorStop(0, `rgba(${col},${spread * 0.12})`);
+              g.addColorStop(1, `rgba(${col},0)`);
+              ctx.beginPath();
+              ctx.arc(it.x, it.y, hR, 0, Math.PI * 2);
+              ctx.fillStyle = g;
+              ctx.fill();
+            }
 
-        /* ─ 플로우 파티클 ─ */
-        particles.forEach(p => {
-          p.life += 0.0035;
-          if (p.life > p.maxLife) {
-            Object.assign(p, makeParticle());
-            p.x = Math.random() * W; p.y = Math.random() * H; p.life = 0;
-            return;
+            ctx.beginPath();
+            ctx.arc(it.x, it.y, r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${col},${op})`;
+            ctx.fill();
           }
 
-          /* 플로우 필드 */
-          const ang = flowAngle(p.x, p.y);
-          p.vx += Math.cos(ang) * 0.012 * p.spd;
-          p.vy += Math.sin(ang) * 0.012 * p.spd;
-
-          /* 마우스 소용돌이 */
-          const mx = p.x - mouse.x, my = p.y - mouse.y;
-          const md = Math.sqrt(mx * mx + my * my);
-          if (md < 160 && md > 0) {
-            const f = (1 - md / 160) * 0.038;
-            p.vx += (-my / md) * f;
-            p.vy += ( mx / md) * f;
+          if (it.type === 'rung') {
+            const d0 = (it.z0 - zMin) / zSpan;
+            const d1 = (it.z1 - zMin) / zSpan;
+            const da = d;
+            const grad = ctx.createLinearGradient(it.x0, it.y0, it.x1, it.y1);
+            grad.addColorStop(0,   `rgba(${c0},${0.01 + d0 * 0.085})`);
+            grad.addColorStop(0.5, `rgba(${c0},${0.006 + da * 0.042})`);
+            grad.addColorStop(1,   `rgba(${c1},${0.01 + d1 * 0.085})`);
+            ctx.beginPath();
+            ctx.moveTo(it.x0, it.y0);
+            ctx.lineTo(it.x1, it.y1);
+            ctx.strokeStyle = grad;
+            ctx.lineWidth   = 0.3 + da * 0.8;
+            ctx.stroke();
           }
-
-          p.vx *= 0.955; p.vy *= 0.955;
-
-          if (Math.sqrt(p.vx*p.vx + p.vy*p.vy) < 0.18) {
-            p.vx += Math.cos(ang) * 0.04;
-            p.vy += Math.sin(ang) * 0.04;
-          }
-
-          p.x += p.vx; p.y += p.vy;
-
-          if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
-          if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
-
-          /* 생애 페이드 */
-          const lp   = p.life / p.maxLife;
-          const fade = lp < 0.18 ? lp / 0.18 : lp > 0.78 ? (1 - lp) / 0.22 : 1;
-
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${C.dot},${p.op * fade})`;
-          ctx.fill();
         });
 
         requestAnimationFrame(step);
       }
 
-      /* ── 이벤트 ───────────────────────────── */
       window.addEventListener('resize', resize);
-      window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-      window.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
-      window.addEventListener('touchmove', e => {
-        mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY;
-      }, { passive: true });
-      window.addEventListener('touchend', () => { mouse.x = -9999; mouse.y = -9999; });
-
-      resize(); init(); step();
+      resize(); step();
     })();
 
     /* ═══════════════════════════════════════════
