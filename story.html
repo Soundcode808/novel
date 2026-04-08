@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>소설 - soundcode808</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=Noto+Sans+KR:wght@300;400;500&family=Space+Mono&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --text: #1a1a1a;
+      --text-sub: #666;
+      --text-muted: #999;
+      --border: #efefef;
+      --radius: 4px;
+    }
+
+    body.theme-night {
+      --bg: #0d0d0f;
+      --surface: #161619;
+      --text: #e8e8ec;
+      --text-sub: #aaa;
+      --text-muted: #666;
+      --border: #252530;
+    }
+
+    body.theme-sepia {
+      --bg: #f5f0e8;
+      --surface: #faf7f0;
+      --text: #3d3528;
+      --text-sub: #6b5d4f;
+      --text-muted: #9a8875;
+      --border: #e8dfd3;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'Noto Serif KR', serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ── HEADER ────────────────────────────── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(250,250,250,0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    body.theme-night header {
+      background: rgba(13,13,15,0.92);
+    }
+
+    body.theme-sepia header {
+      background: rgba(245,240,232,0.92);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-back {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font-size: 1.2rem;
+      transition: opacity 0.2s;
+    }
+    .btn-back:hover { opacity: 0.6; }
+
+    .site-name {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .header-right {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    /* ── THEME SELECTOR ────────────────────── */
+    .theme-toggle {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .theme-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: border-color 0.2s;
+      background: var(--surface);
+    }
+    .theme-btn:hover { border-color: var(--text-sub); }
+    .theme-btn.active { border-color: var(--text); background: var(--text); }
+
+    .theme-btn.minimal { background: #fafafa; border-color: #ddd; }
+    .theme-btn.minimal.active { background: #1a1a1a; }
+
+    .theme-btn.night { background: #0d0d0f; border-color: #333; }
+    .theme-btn.night.active { background: #e8e8ec; }
+
+    .theme-btn.sepia { background: #e8dcc6; border-color: #c4b5a0; }
+    .theme-btn.sepia.active { background: #6b5d4f; }
+
+    /* ── MAIN ──────────────────────────────── */
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 3rem 2rem 6rem;
+      min-height: calc(100vh - 56px);
+    }
+
+    /* ── NOT FOUND ─────────────────────────── */
+    .not-found {
+      text-align: center;
+      padding: 4rem 0;
+    }
+
+    .not-found-title {
+      font-size: 2rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .not-found-desc {
+      font-size: 0.9rem;
+      color: var(--text-sub);
+      margin-bottom: 2rem;
+    }
+
+    .not-found a {
+      display: inline-block;
+      padding: 0.6rem 1.2rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      transition: border-color 0.2s;
+    }
+    .not-found a:hover { border-color: var(--text); }
+
+    /* ── STORY ─────────────────────────────── */
+    .story-header {
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .story-title {
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      font-weight: 400;
+      line-height: 1.3;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    .story-subtitle {
+      font-size: 0.95rem;
+      color: var(--text-sub);
+      margin-bottom: 1rem;
+    }
+
+    .story-meta {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* ── CONTENT ───────────────────────────── */
+    .story-content {
+      line-height: 2;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    .story-content p {
+      margin-bottom: 1.5rem;
+      text-align: justify;
+    }
+
+    .story-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    .story-content hr {
+      border: none;
+      height: 1px;
+      background: var(--border);
+      margin: 2.5rem 0;
+    }
+
+    .story-content em {
+      font-style: italic;
+      color: var(--text-sub);
+    }
+
+    .story-content strong {
+      font-weight: 600;
+    }
+
+    /* ── FOOTER ────────────────────────────── */
+    .story-footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .story-footer-text {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+
+    .back-to-list {
+      display: inline-block;
+      padding: 0.6rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      background: transparent;
+      color: var(--text);
+    }
+    .back-to-list:hover { border-color: var(--text); }
+  </style>
+</head>
+<body class="theme-minimal">
+
+  <header>
+    <div class="header-left">
+      <button class="btn-back" onclick="history.back()">←</button>
+      <span class="site-name">soundcode808</span>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle">
+        <button class="theme-btn minimal active" title="Minimal" onclick="changeTheme('minimal')"></button>
+        <button class="theme-btn night" title="Night" onclick="changeTheme('night')"></button>
+        <button class="theme-btn sepia" title="Sepia" onclick="changeTheme('sepia')"></button>
+      </div>
+    </div>
+  </header>
+
+  <main id="story-main">
+    <div class="not-found">
+      <h1 class="not-found-title">작품을 찾을 수 없습니다</h1>
+      <p class="not-found-desc">요청하신 작품이 없거나 ID가 잘못되었습니다.</p>
+      <a href="index.html">← 목록으로 돌아가기</a>
+    </div>
+  </main>
+
+  <script src="stories.js"></script>
+  <script>
+    /* ── 테마 변경 ─────────────────────────────── */
+    function changeTheme(theme) {
+      document.body.className = 'theme-' + theme;
+      document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelector('.theme-btn.' + theme).classList.add('active');
+      localStorage.setItem('sc808_theme', theme);
+    }
+
+    /* 저장된 테마 로드 */
+    const savedTheme = localStorage.getItem('sc808_theme') || 'minimal';
+    changeTheme(savedTheme);
+
+    /* ── 소설 로드 ────────────────────────────── */
+    function parseContent(text) {
+      // 단락 분리 및 마크다운 파싱
+      return text
+        .split('\n\n')
+        .map(para => {
+          // --- 로 시작하면 <hr>
+          if (para.trim() === '---') return '<hr>';
+          // *text* → <em>text</em>
+          para = para.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+          return '<p>' + para + '</p>';
+        })
+        .join('');
+    }
+
+    function loadStory() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+
+      if (!id || !window.STORIES) {
+        return; // not found 유지
+      }
+
+      const story = window.STORIES.find(s => s.id === id);
+      if (!story) {
+        return; // not found 유지
+      }
+
+      // 저장된 테마가 있으면 그걸 사용, 없으면 작품의 기본 테마
+      let theme = localStorage.getItem('sc808_theme') || story.theme || 'minimal';
+      changeTheme(theme);
+
+      const contentHtml = parseContent(story.content);
+
+      document.getElementById('story-main').innerHTML = `
+        <article>
+          <header class="story-header">
+            <h1 class="story-title">${story.title}</h1>
+            ${story.subtitle ? `<p class="story-subtitle">${story.subtitle}</p>` : ''}
+            <div class="story-meta">
+              <span>${story.date || '—'}</span>
+              <span>${story.theme === 'minimal' ? 'Minimal' : story.theme === 'night' ? 'Night' : 'Sepia'}</span>
+            </div>
+          </header>
+
+          <div class="story-content">
+            ${contentHtml}
+          </div>
+
+          <footer class="story-footer">
+            <p class="story-footer-text">— end —</p>
+            <button class="back-to-list" onclick="location.href='index.html'">← 목록으로 돌아가기</button>
+          </footer>
+        </article>
+      `;
+    }
+
+    loadStory();
+  </script>
+</body>
+</html>
