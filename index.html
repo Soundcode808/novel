@@ -383,142 +383,80 @@
   <script src="stories.js"></script>
   <script>
     /* ═══════════════════════════════════════════
-       배경 애니메이션 — DNA 이중나선 (아웃포커싱)
-       매우 천천히 회전 (~90초/1회전)
-       가까운 점은 크고 밝게 + 보케 헤일로
-       먼 점은 작고 희미하게 (심도 표현)
+       배경 — 오로라 앰비언트
+       대형 그라디언트 풀 5개가 사인파 궤도로 천천히 유영
+       개별 "물체" 없음 — 빛 자체가 살아있는 느낌
+       마우스: 전체 배경이 미세하게 패럴랙스
     ═══════════════════════════════════════════ */
     (function () {
       const canvas = document.getElementById('bg-canvas');
       const ctx    = canvas.getContext('2d');
-      let W, H, T = 0;
+      let W, H;
+
+      /* 마우스 패럴랙스 */
+      const mouse  = { x: 0, y: 0 };
+      const offset = { x: 0, y: 0 };
 
       function resize() {
         W = canvas.width  = window.innerWidth;
         H = canvas.height = window.innerHeight;
       }
 
-      function toneColors() {
+      /* 테마별 색상 */
+      function tone() {
         const b = document.body;
-        if (b.classList.contains('t-void'))  return ['70,130,205', '40,90,170'];
-        if (b.classList.contains('t-night')) return ['210,188,152', '168,142,108'];
-        if (b.classList.contains('t-sepia')) return ['138,106,70',  '108,80,48' ];
-        return ['90,90,90', '140,140,140'];
+        if (b.classList.contains('t-void'))  return '60,115,195';
+        if (b.classList.contains('t-night')) return '195,172,140';
+        if (b.classList.contains('t-sepia')) return '158,118,72';
+        return '95,95,95';
       }
 
-      /* ── 3D 변환 + 원근 투영 ─────────────── */
-      const TILT  = Math.PI / 5.5; // ~33° 기울기 (위쪽이 가까이)
-      const CAMD  = 680;           // 카메라 거리 (원근 강도)
-
-      function project(mx, my, mz) {
-        // X축 회전: 헬릭스 위를 앞으로 기울임
-        const ry =  my * Math.cos(TILT) - mz * Math.sin(TILT);
-        const rz =  my * Math.sin(TILT) + mz * Math.cos(TILT);
-        const rx =  mx;
-        // 원근 투영
-        const pv = CAMD / (CAMD + rz);
-        return { sx: W / 2 + rx * pv, sy: H / 2 + ry * pv, rz, pv };
-      }
+      /* 풀 정의: [xRatio, yRatio, rRatio, ph1, ph2, f1, f2, axR, ayR] */
+      const POOLS = [
+        [0.28, 0.20, 0.58, 0.00, 2.10, 9e-5, 7e-5, 0.22, 0.17],
+        [0.78, 0.68, 0.50, 1.55, 0.65, 7e-5, 1.1e-4, 0.17, 0.21],
+        [0.52, 0.90, 0.44, 3.00, 4.20, 1.1e-4, 8e-5, 0.14, 0.13],
+        [0.12, 0.72, 0.42, 4.50, 1.80, 8e-5, 1.0e-4, 0.19, 0.15],
+        [0.88, 0.18, 0.40, 2.30, 3.50, 1.0e-4, 6.5e-5, 0.15, 0.19],
+      ];
 
       function step() {
         ctx.clearRect(0, 0, W, H);
-        T += 0.0011;
+        const t = Date.now();
+        const c = tone();
 
-        const [c0, c1] = toneColors();
-        const R     = Math.max(46, Math.min(74, W * 0.052));
-        const hH    = H * 0.9;
-        const TURNS = 5.5;
-        const N     = 210;
-        const RUNGS = 23;
+        /* 패럴랙스 스무딩 */
+        offset.x += ((mouse.x - W / 2) * 0.028 - offset.x) * 0.018;
+        offset.y += ((mouse.y - H / 2) * 0.022 - offset.y) * 0.018;
 
-        const items = [];
+        const D = Math.min(W, H);
 
-        /* ─ 두 가닥 ─ */
-        for (let s = 0; s < 2; s++) {
-          for (let i = 0; i < N; i++) {
-            const tn  = i / N;
-            const ang = tn * TURNS * Math.PI * 2 + T + (s === 1 ? Math.PI : 0);
-            const { sx, sy, rz, pv } = project(
-              Math.cos(ang) * R,
-              (tn - 0.5) * hH,
-              Math.sin(ang) * R
-            );
-            items.push({ type: 'dot', s, x: sx, y: sy, z: rz, pv });
-          }
-        }
+        POOLS.forEach(([xR, yR, rR, ph1, ph2, f1, f2, axR, ayR]) => {
+          const x = W * xR + Math.sin(t * f1 + ph1) * W * axR + offset.x;
+          const y = H * yR + Math.sin(t * f2 + ph2) * H * ayR + offset.y;
+          const r = D * rR * (1 + Math.sin(t * 4.8e-5) * 0.07);
 
-        /* ─ 염기쌍 가로선 ─ */
-        for (let r = 0; r < RUNGS; r++) {
-          const tn   = (r + 0.5) / RUNGS;
-          const base = tn * TURNS * Math.PI * 2 + T;
-          const my   = (tn - 0.5) * hH;
-          const a0   = project(Math.cos(base)       * R, my, Math.sin(base)       * R);
-          const a1   = project(Math.cos(base + Math.PI) * R, my, Math.sin(base + Math.PI) * R);
-          items.push({
-            type: 'rung',
-            x0: a0.sx, y0: a0.sy, z0: a0.rz, pv0: a0.pv,
-            x1: a1.sx, y1: a1.sy, z1: a1.rz, pv1: a1.pv,
-            z: (a0.rz + a1.rz) / 2,
-          });
-        }
+          const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+          g.addColorStop(0,    `rgba(${c},0.058)`);
+          g.addColorStop(0.3,  `rgba(${c},0.034)`);
+          g.addColorStop(0.65, `rgba(${c},0.012)`);
+          g.addColorStop(1,    `rgba(${c},0)`);
 
-        /* ─ 뒤 → 앞 정렬 ─ */
-        items.sort((a, b) => a.z - b.z);
-
-        /* ─ z 범위 정규화 ─ */
-        const zAll  = items.map(i => i.z);
-        const zMin  = Math.min(...zAll);
-        const zMax  = Math.max(...zAll);
-        const zSpan = zMax - zMin || 1;
-
-        items.forEach(it => {
-          const d = (it.z - zMin) / zSpan; // 0=뒤(먼), 1=앞(가까움)
-
-          if (it.type === 'dot') {
-            const r   = 0.6 + d * 3.4;
-            const op  = 0.016 + d * 0.22;
-            const col = it.s === 0 ? c0 : c1;
-
-            /* 아웃포커싱 보케 헤일로 — 가까운 점에만 */
-            if (d > 0.48) {
-              const spread = (d - 0.48) / 0.52;
-              const hR = r + spread * 22;
-              const g  = ctx.createRadialGradient(it.x, it.y, r * 0.15, it.x, it.y, hR);
-              g.addColorStop(0, `rgba(${col},${spread * 0.12})`);
-              g.addColorStop(1, `rgba(${col},0)`);
-              ctx.beginPath();
-              ctx.arc(it.x, it.y, hR, 0, Math.PI * 2);
-              ctx.fillStyle = g;
-              ctx.fill();
-            }
-
-            ctx.beginPath();
-            ctx.arc(it.x, it.y, r, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${col},${op})`;
-            ctx.fill();
-          }
-
-          if (it.type === 'rung') {
-            const d0 = (it.z0 - zMin) / zSpan;
-            const d1 = (it.z1 - zMin) / zSpan;
-            const da = d;
-            const grad = ctx.createLinearGradient(it.x0, it.y0, it.x1, it.y1);
-            grad.addColorStop(0,   `rgba(${c0},${0.01 + d0 * 0.085})`);
-            grad.addColorStop(0.5, `rgba(${c0},${0.006 + da * 0.042})`);
-            grad.addColorStop(1,   `rgba(${c1},${0.01 + d1 * 0.085})`);
-            ctx.beginPath();
-            ctx.moveTo(it.x0, it.y0);
-            ctx.lineTo(it.x1, it.y1);
-            ctx.strokeStyle = grad;
-            ctx.lineWidth   = 0.3 + da * 0.8;
-            ctx.stroke();
-          }
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle = g;
+          ctx.fill();
         });
 
         requestAnimationFrame(step);
       }
 
       window.addEventListener('resize', resize);
+      window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+      window.addEventListener('touchmove',  e => {
+        mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY;
+      }, { passive: true });
+
       resize(); step();
     })();
 
