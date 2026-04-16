@@ -260,7 +260,6 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      overflow: hidden;
     }
 
     .editor-header {
@@ -340,6 +339,11 @@
       display: flex;
       gap: 0.75rem;
       justify-content: flex-end;
+      position: sticky;
+      bottom: 0;
+      background: var(--surface);
+      border-radius: 0 0 var(--radius) var(--radius);
+      z-index: 10;
     }
 
     /* TOAST */
@@ -458,17 +462,18 @@
               </div>
             </div>
 
-            <!-- 날짜 / ID -->
+            <!-- 날짜 / 저자 -->
             <div class="editor-row col2">
               <div class="form-group" style="margin:0">
                 <label class="form-label">날짜</label>
-                <input class="form-input" id="ed-date" type="text" placeholder="2026">
+                <input class="form-input" id="ed-date" type="text" placeholder="2026.04.17">
               </div>
               <div class="form-group" style="margin:0">
-                <label class="form-label">작품 ID (영문·숫자)</label>
-                <input class="form-input" id="ed-id" type="text" placeholder="hoirang (자동생성 가능)">
+                <label class="form-label">저자 (작가명)</label>
+                <input class="form-input" id="ed-author" type="text" placeholder="soundcode808">
               </div>
             </div>
+            <input type="hidden" id="ed-id">
 
             <!-- 테마 -->
             <div class="form-group" style="margin:0">
@@ -715,6 +720,12 @@
       `).join('');
     }
 
+    /* ── 유틸 ───────────────────────────────── */
+    function todayStr() {
+      const d = new Date();
+      return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+    }
+
     /* ── 에디터 ──────────────────────────────── */
     let editingIndex = -1;
     let selectedTheme = 'minimal';
@@ -726,6 +737,7 @@
       document.getElementById('editor-mode-label').textContent = 'New';
       document.getElementById('btn-delete').style.display = 'none';
       clearEditor();
+      document.getElementById('ed-date').value = todayStr();
       selectThemeByValue('minimal');
       document.getElementById('editor-wrap').style.display = 'block';
       document.getElementById('code-output').style.display = 'none';
@@ -742,12 +754,13 @@
       document.getElementById('editor-mode-label').textContent = 'Edit';
       document.getElementById('btn-delete').style.display = 'inline-flex';
 
-      document.getElementById('ed-title').value   = s.title || '';
+      document.getElementById('ed-title').value    = s.title || '';
       document.getElementById('ed-subtitle').value = s.subtitle || '';
-      document.getElementById('ed-date').value    = s.date || '';
-      document.getElementById('ed-id').value      = s.id || '';
-      document.getElementById('ed-excerpt').value = s.excerpt || '';
-      document.getElementById('ed-content').value = s.content || '';
+      document.getElementById('ed-date').value     = s.date || '';
+      document.getElementById('ed-id').value       = s.id || '';
+      document.getElementById('ed-author').value   = s.author || '';
+      document.getElementById('ed-excerpt').value  = s.excerpt || '';
+      document.getElementById('ed-content').value  = s.content || '';
       selectThemeByValue(selectedTheme);
 
       document.getElementById('editor-wrap').style.display = 'block';
@@ -760,7 +773,7 @@
     }
 
     function clearEditor() {
-      ['ed-title','ed-subtitle','ed-date','ed-id','ed-excerpt','ed-content']
+      ['ed-title','ed-subtitle','ed-date','ed-id','ed-author','ed-excerpt','ed-content']
         .forEach(id => document.getElementById(id).value = '');
     }
 
@@ -778,19 +791,58 @@
     }
 
     function getEditorData() {
-      const title   = document.getElementById('ed-title').value.trim();
-      const rawId   = document.getElementById('ed-id').value.trim();
-      const id      = rawId || title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-가-힣]/g, '');
+      const title     = document.getElementById('ed-title').value.trim();
+      const existingId = document.getElementById('ed-id').value.trim();
+      const id        = existingId || title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-가-힣]/g, '');
       return {
         id,
         title,
         subtitle: document.getElementById('ed-subtitle').value.trim(),
         date:     document.getElementById('ed-date').value.trim(),
+        author:   document.getElementById('ed-author').value.trim(),
         theme:    selectedTheme,
         excerpt:  document.getElementById('ed-excerpt').value.trim(),
         content:  document.getElementById('ed-content').value.trim(),
       };
     }
+
+    /* ── 본문 붙여넣기 → 제목/부제목 자동감지 ── */
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('ed-content').addEventListener('paste', function() {
+        setTimeout(() => {
+          const lines = this.value.split('\n');
+          const removeIdx = [];
+          let i = 0;
+
+          while (i < lines.length && !lines[i].trim()) i++;
+
+          if (i < lines.length && lines[i].startsWith('# ')) {
+            const titleInput = document.getElementById('ed-title');
+            if (!titleInput.value.trim()) {
+              titleInput.value = lines[i].slice(2).trim();
+              removeIdx.push(i);
+            }
+            i++;
+          }
+
+          while (i < lines.length && !lines[i].trim()) i++;
+
+          if (i < lines.length && lines[i].startsWith('## ')) {
+            const subInput = document.getElementById('ed-subtitle');
+            if (!subInput.value.trim()) {
+              subInput.value = lines[i].slice(3).trim();
+              removeIdx.push(i);
+            }
+          }
+
+          if (removeIdx.length) {
+            const newLines = lines.filter((_, idx) => !removeIdx.includes(idx));
+            while (newLines.length && !newLines[0].trim()) newLines.shift();
+            this.value = newLines.join('\n');
+          }
+        }, 0);
+      });
+    });
 
     function saveWork() {
       const data = getEditorData();
@@ -829,6 +881,7 @@
     id: '${data.id}',
     title: '${data.title}',
     subtitle: '${data.subtitle}',
+    author: '${data.author}',
     theme: '${data.theme}',
     date: '${data.date}',
     excerpt: '${data.excerpt}',

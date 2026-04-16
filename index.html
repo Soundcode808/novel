@@ -467,12 +467,50 @@
     /* ══ BGM PLAYER ════════════════════════════════════ */
     .bgm-player {
       position: fixed; bottom: 1.6rem; right: 2rem; z-index: 200;
-      display: flex; align-items: center; gap: .7rem;
-      padding: .55rem .9rem .55rem .8rem;
+      width: 300px;
+      padding: .5rem .6rem;
       background: var(--hbg);
       backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-      border: 1px solid var(--border); border-radius: 999px;
-      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+      border: 1px solid var(--border); border-radius: 10px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.12);
+    }
+    .bgm-player iframe { display: block; border-radius: 4px; }
+
+    /* 밝은 테마 → 플레이어 다크 반전 */
+    body.t-minimal .bgm-player {
+      background: rgba(20,20,22,0.88);
+      border-color: rgba(255,255,255,0.14);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.28);
+    }
+    body.t-minimal .bgm-title  { color: rgba(225,225,230,0.78); }
+    body.t-minimal .bgm-dot    { background: rgba(180,180,185,0.55); }
+    body.t-minimal .bgm-dot.playing { background: rgba(210,210,215,0.9); }
+    body.t-minimal .bgm-mute   { color: rgba(180,180,185,0.75); }
+    body.t-minimal .bgm-vol    { background: rgba(255,255,255,0.14); }
+    body.t-minimal .bgm-vol::-webkit-slider-thumb { background: rgba(200,200,205,0.85); }
+    body.t-minimal .bgm-vol::-moz-range-thumb      { background: rgba(200,200,205,0.85); }
+
+    body.t-sepia .bgm-player {
+      background: rgba(42,30,18,0.92);
+      border-color: rgba(200,168,110,0.22);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.28);
+    }
+    body.t-sepia .bgm-title  { color: rgba(220,195,150,0.82); }
+    body.t-sepia .bgm-dot    { background: rgba(185,155,100,0.55); }
+    body.t-sepia .bgm-dot.playing { background: rgba(210,180,120,0.9); }
+    body.t-sepia .bgm-mute   { color: rgba(185,155,100,0.75); }
+    body.t-sepia .bgm-vol    { background: rgba(200,168,110,0.18); }
+    body.t-sepia .bgm-vol::-webkit-slider-thumb { background: rgba(210,180,120,0.85); }
+    body.t-sepia .bgm-vol::-moz-range-thumb      { background: rgba(210,180,120,0.85); }
+
+    /* 어두운 테마 → 대비 테두리 강화 */
+    body.t-night .bgm-player {
+      border-color: rgba(232,216,184,0.32);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+    body.t-void .bgm-player {
+      border-color: rgba(94,200,232,0.38);
+      box-shadow: 0 4px 24px rgba(94,200,232,0.08), 0 0 0 1px rgba(94,200,232,0.07);
     }
     .bgm-dot {
       width: 5px; height: 5px; border-radius: 50%;
@@ -518,12 +556,16 @@
     /* ══ RESPONSIVE ════════════════════════════════════ */
     @media(max-width:600px){
       header { padding: 0 1rem; height: 52px; }
-      .hero { padding: 4.5rem 1.2rem 3rem; }
+      .hero { padding: 2.5rem 1.2rem 1.5rem; }
+      .hero-desc { display: none; }
       .works-section { padding: 0 1.2rem 5rem; }
-      .hero-title { font-size: 1.7rem; }
+      .section-rule { margin-bottom: 1.2rem; }
+      .works-count { margin-bottom: 1rem; }
+      .hero-title { font-size: 1.5rem; }
       .tbtn { width: 13px; height: 13px; }
       body.in-story .tbtn { width: 18px; height: 18px; }
-      .card { grid-template-columns: 2rem 1fr auto; gap: .8rem; padding: 1.4rem 0; }
+      .card { grid-template-columns: 2rem 1fr auto; gap: .8rem; padding: .9rem 0; }
+      .card-excerpt { display: none; }
       #story-main { padding: 2.5rem 1.2rem 6rem; }
       .font-ctrl { display: none !important; }
       .nav-row { grid-template-columns: 1fr; }
@@ -539,18 +581,10 @@
   <div id="void-bg"></div>
   <canvas id="bg-canvas"></canvas>
 
-  <!-- BGM -->
-  <audio id="bgm" src="Reverb-Bloom.flac" loop preload="auto"></audio>
-
-  <!-- BGM 플레이어 위젯 -->
+  <!-- BGM 플레이어 -->
   <div class="bgm-player">
-    <span class="bgm-dot" id="bgm-dot"></span>
-    <span class="bgm-title">Reverb — Bloom</span>
-    <button class="bgm-mute" id="bgm-mute" title="음소거 토글">
-      <svg id="icon-on" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-      <svg id="icon-off" viewBox="0 0 24 24" style="display:none"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
-    </button>
-    <input class="bgm-vol" id="bgm-vol" type="range" min="0" max="1" step="0.01" value="0.35" title="볼륨">
+    <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay"
+      src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Fusers%2F1316432325&color=%23888888&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&buying=false&liking=false&download=false&sharing=false"></iframe>
   </div>
 
   <div class="page-wrap">
@@ -953,58 +987,6 @@
 
   renderList();
 
-  /* ════════════════════════════════════════════════════
-     BGM 플레이어
-  ════════════════════════════════════════════════════ */
-  (function(){
-    const audio   = document.getElementById('bgm');
-    const dot     = document.getElementById('bgm-dot');
-    const muteBtn = document.getElementById('bgm-mute');
-    const iconOn  = document.getElementById('icon-on');
-    const iconOff = document.getElementById('icon-off');
-    const volSldr = document.getElementById('bgm-vol');
-
-    const savedVol  = parseFloat(localStorage.getItem('sc808_vol')?? '0.35');
-    const savedMute = localStorage.getItem('sc808_mute') === '1';
-    audio.volume  = savedVol;
-    audio.muted   = savedMute;
-    volSldr.value = savedVol;
-    syncIcons();
-
-    function syncIcons() {
-      const muted = audio.muted || audio.volume === 0;
-      iconOn.style.display  = muted ? 'none' : '';
-      iconOff.style.display = muted ? ''     : 'none';
-    }
-    function syncDot() {
-      dot.classList.toggle('playing', !audio.paused && !audio.muted);
-    }
-
-    muteBtn.addEventListener('click', ()=>{
-      audio.muted = !audio.muted;
-      localStorage.setItem('sc808_mute', audio.muted?'1':'0');
-      syncIcons(); syncDot();
-    });
-    volSldr.addEventListener('input', ()=>{
-      audio.volume = parseFloat(volSldr.value);
-      if (audio.volume > 0 && audio.muted){ audio.muted=false; localStorage.setItem('sc808_mute','0'); }
-      localStorage.setItem('sc808_vol', volSldr.value);
-      syncIcons(); syncDot();
-    });
-
-    audio.addEventListener('play',  syncDot);
-    audio.addEventListener('pause', syncDot);
-
-    let started=false;
-    function tryPlay(){
-      if(started) return; started=true;
-      audio.play().catch(()=>{ started=false; });
-    }
-    ['click','keydown','scroll','touchstart'].forEach(ev=>
-      document.addEventListener(ev, tryPlay, { passive:true })
-    );
-    audio.play().then(()=>{ started=true; }).catch(()=>{});
-  })();
   </script>
 </body>
 </html>
