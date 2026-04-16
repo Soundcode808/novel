@@ -152,21 +152,44 @@
       color: var(--text-muted); min-width: 1.6rem; text-align: center;
     }
 
-    /* 테마 동그라미 (index) / 네모 (story) */
-    .theme-btns { display: flex; gap: .3rem; align-items: center; }
+    /* 테마 팔레트 사각형 */
+    .theme-btns { display: flex; gap: .35rem; align-items: center; }
     .tbtn {
-      width: 14px; height: 14px; border-radius: 50%;
+      width: 16px; height: 16px; border-radius: 2px;
       border: 1.5px solid transparent; cursor: pointer;
-      transition: border-color .2s, transform .15s;
-      outline: 1px solid rgba(0,0,0,.12); outline-offset: 0;
+      transition: border-color .2s, transform .15s, box-shadow .15s;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.14);
     }
-    body.in-story .tbtn { width: 20px; height: 20px; border-radius: 3px; }
-    .tbtn:hover { transform: scale(1.2); }
-    .tbtn.on { border-color: var(--text); outline-color: transparent; }
-    .tbtn-minimal { background: #fafafa; }
-    .tbtn-night   { background: #0f0e0c; outline-color: rgba(255,255,255,.15); }
-    .tbtn-sepia   { background: #d4b896; outline-color: rgba(0,0,0,.15); }
-    .tbtn-void    { background: linear-gradient(135deg,#07080f 50%,#1a2240); outline-color: rgba(94,200,232,.2); }
+    .tbtn:hover { transform: scale(1.15); }
+    .tbtn.on { border-color: var(--text); box-shadow: none; }
+    .tbtn-minimal { background: #f0f0f0; }
+    .tbtn-night   { background: #0f0e0c; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+    .tbtn-sepia   { background: #d4b896; }
+    .tbtn-void    { background: linear-gradient(135deg,#07080f 50%,#1a2240); box-shadow: inset 0 0 0 1px rgba(94,200,232,.2); }
+
+    /* 헤더 테두리 테마 반응 */
+    body.t-minimal header { border-bottom-color: rgba(0,0,0,0.18); }
+    body.t-sepia   header { border-bottom-color: rgba(80,50,15,0.2); }
+    body.t-night   header { border-bottom-color: rgba(232,216,184,0.22); }
+    body.t-void    header { border-bottom-color: rgba(94,200,232,0.2); }
+
+    /* BGM 헤더 컨트롤 */
+    .bgm-hctrl { display: flex; align-items: center; gap: .05rem; }
+    .bgm-hbtn {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); padding: .2rem .28rem;
+      font-size: .78rem; line-height: 1; border-radius: 3px;
+      transition: color .15s;
+    }
+    .bgm-hbtn:hover { color: var(--text); }
+    #bgm-play { color: var(--text); font-size: .82rem; }
+    .bgm-sc-link {
+      display: flex; align-items: center;
+      color: var(--text-muted); opacity: .55;
+      transition: opacity .2s; padding: .15rem .2rem;
+    }
+    .bgm-sc-link:hover { opacity: 1; }
+    .bgm-sc-link svg { width: 11px; height: 11px; fill: currentColor; }
 
     /* 관리 링크 */
     .header-nav { display: flex; align-items: center; }
@@ -249,7 +272,7 @@
     }
 
     footer {
-      border-top: 1px solid var(--border); padding: 2rem 2rem 5rem; text-align: center;
+      border-top: 1px solid var(--border); padding: 2rem 2rem 12rem; text-align: center;
     }
     .footer-inner {
       font-family: 'Space Mono', monospace; font-size: .65rem;
@@ -464,76 +487,43 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* ══ BGM BAR ═══════════════════════════════════════ */
+    /* ══ PAGINATION ═════════════════════════════════════ */
+    .pagination {
+      display: flex; align-items: center; gap: .35rem; margin-bottom: 1.5rem;
+    }
+    .pg-btn {
+      background: none; border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 3px;
+      font-family: 'Space Mono', monospace; font-size: .65rem;
+      padding: .28rem .6rem; cursor: pointer;
+      transition: border-color .2s, color .2s; line-height: 1;
+    }
+    .pg-btn:hover, .pg-btn.on {
+      border-color: var(--text-muted); color: var(--text);
+    }
+
+    /* ══ MOBILE BGM BAR ════════════════════════════════ */
     .bgm-bar {
+      display: none;
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
-      height: 52px;
-      display: flex; align-items: center; gap: .9rem;
-      padding: 0 1.5rem;
-      background: var(--hbg);
-      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-      border-top: 1px solid var(--border);
+      background: #111; height: 54px;
+      align-items: center; gap: .1rem;
+      padding: 0 1rem; border-top: 1px solid #222;
     }
-    .bgm-controls {
-      display: flex; align-items: center; gap: .1rem; flex-shrink: 0;
-    }
-    .bgm-btn {
+    .bgm-bar-btn {
       background: none; border: none; cursor: pointer;
-      color: var(--text-muted); padding: .3rem .45rem;
-      font-size: .85rem; line-height: 1; border-radius: 4px;
+      color: #888; font-size: .82rem; padding: .3rem .48rem;
+      line-height: 1; border-radius: 3px;
       transition: color .15s;
     }
-    .bgm-btn:hover { color: var(--text); }
-    .bgm-btn.active { color: var(--text); }
-    #bgm-play { font-size: 1rem; color: var(--text); padding: .3rem .5rem; }
-    .bgm-track-area {
-      flex: 1; min-width: 0;
-      display: flex; flex-direction: column; gap: .22rem;
-    }
-    .bgm-track-name {
-      font-family: 'Space Mono', monospace; font-size: .6rem;
-      letter-spacing: .04em; color: var(--text-sub);
+    .bgm-bar-btn:hover { color: #fff; }
+    #bgm2-play { color: #ddd; font-size: .9rem; }
+    .bgm-bar-title {
+      flex: 1; font-family: 'Space Mono', monospace;
+      font-size: .6rem; color: #555; letter-spacing: .07em;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      user-select: none;
+      margin-left: .5rem;
     }
-    .bgm-prog {
-      width: 100%; height: 2px; background: var(--border);
-      border-radius: 2px; cursor: pointer; overflow: hidden;
-    }
-    .bgm-prog-fill {
-      height: 100%; width: 0%;
-      background: var(--text-muted);
-      transition: width .8s linear; border-radius: 2px;
-    }
-    body.t-void .bgm-prog-fill { background: var(--accent); }
-
-    /* 밝은 테마 → 바 다크 반전 */
-    body.t-minimal .bgm-bar {
-      background: rgba(18,18,20,0.93);
-      border-color: rgba(255,255,255,0.1);
-    }
-    body.t-minimal .bgm-btn      { color: rgba(160,160,165,0.65); }
-    body.t-minimal .bgm-btn:hover { color: rgba(230,230,235,1); }
-    body.t-minimal .bgm-btn.active { color: rgba(230,230,235,1); }
-    body.t-minimal #bgm-play     { color: rgba(230,230,235,0.92); }
-    body.t-minimal .bgm-track-name { color: rgba(190,190,195,0.7); }
-    body.t-minimal .bgm-prog     { background: rgba(255,255,255,0.1); }
-    body.t-minimal .bgm-prog-fill { background: rgba(200,200,205,0.55); }
-
-    body.t-sepia .bgm-bar {
-      background: rgba(38,27,16,0.95);
-      border-color: rgba(200,168,110,0.16);
-    }
-    body.t-sepia .bgm-btn      { color: rgba(175,145,90,0.6); }
-    body.t-sepia .bgm-btn:hover { color: rgba(220,195,150,1); }
-    body.t-sepia .bgm-btn.active { color: rgba(220,195,150,1); }
-    body.t-sepia #bgm-play     { color: rgba(220,195,150,0.92); }
-    body.t-sepia .bgm-track-name { color: rgba(195,165,110,0.7); }
-    body.t-sepia .bgm-prog     { background: rgba(200,168,110,0.14); }
-    body.t-sepia .bgm-prog-fill { background: rgba(195,165,110,0.55); }
-
-    body.t-night .bgm-bar { border-color: rgba(232,216,184,0.18); }
-    body.t-void  .bgm-bar { border-color: rgba(94,200,232,0.18); }
 
     /* ══ RESPONSIVE ════════════════════════════════════ */
     @media(max-width:600px){
@@ -552,8 +542,10 @@
       .font-ctrl { display: none !important; }
       .nav-row { grid-template-columns: 1fr; }
       .story-title { font-size: clamp(1.4rem,7vw,1.9rem); }
-      .bgm-bar { padding: 0 1rem; gap: .6rem; }
-      .bgm-track-name { font-size: .55rem; }
+      .bgm-hbtn { padding: .2rem .22rem; font-size: .72rem; }
+      .bgm-hctrl { display: none !important; }
+      .bgm-bar { display: flex; }
+      footer { padding-bottom: calc(54px + 2rem); }
     }
   </style>
 </head>
@@ -563,25 +555,17 @@
   <div id="void-bg"></div>
   <canvas id="bg-canvas"></canvas>
 
-  <!-- SC 위젯 (숨김) -->
-  <iframe id="sc-widget" scrolling="no" frameborder="no" allow="autoplay"
-    src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Fplaylists%2F2223312026&color=%23888888&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false"
-    style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;"></iframe>
+  <!-- SC Widget (숨김) -->
+  <iframe id="sc-widget" style="display:none" width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay"
+    src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Fplaylists%2F2223312026&color=%23888888&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false"></iframe>
 
-  <!-- BGM 바 -->
-  <div class="bgm-bar">
-    <div class="bgm-controls">
-      <button class="bgm-btn" id="bgm-prev" title="이전 곡">⏮</button>
-      <button class="bgm-btn" id="bgm-play" title="재생/정지">▶</button>
-      <button class="bgm-btn" id="bgm-next" title="다음 곡">⏭</button>
-      <button class="bgm-btn" id="bgm-shuffle" title="셔플">⇄</button>
-    </div>
-    <div class="bgm-track-area">
-      <span class="bgm-track-name" id="bgm-track-name">Novel BGM List</span>
-      <div class="bgm-prog" id="bgm-prog">
-        <div class="bgm-prog-fill" id="bgm-prog-fill"></div>
-      </div>
-    </div>
+  <!-- 모바일 하단 BGM 바 -->
+  <div class="bgm-bar" id="bgm-bar">
+    <button class="bgm-bar-btn" id="bgm2-prev" title="이전 곡">⏮</button>
+    <button class="bgm-bar-btn" id="bgm2-play" title="재생/정지">▶</button>
+    <button class="bgm-bar-btn" id="bgm2-next" title="다음 곡">⏭</button>
+    <button class="bgm-bar-btn" id="bgm2-shuffle" title="셔플">⇄</button>
+    <span class="bgm-bar-title" id="bgm-title">Novel BGM List</span>
   </div>
 
   <div class="page-wrap">
@@ -611,6 +595,14 @@
           <button class="font-btn" onclick="changeSize(-1)">−</button>
           <span class="font-val" id="fval">16</span>
           <button class="font-btn" onclick="changeSize(+1)">+</button>
+        </div>
+        <div class="bgm-hctrl">
+          <button class="bgm-hbtn" id="bgm-prev" title="이전 곡">⏮</button>
+          <button class="bgm-hbtn" id="bgm-play" title="재생/정지">▶</button>
+          <button class="bgm-hbtn" id="bgm-next" title="다음 곡">⏭</button>
+          <a class="bgm-sc-link" href="https://soundcloud.com/soundcode808/sets/novel-bgm-list" target="_blank" title="Novel BGM List">
+            <svg viewBox="0 0 24 24"><path d="M11.56 8.87V17h8.76c1.85 0 2.68-1.31 2.68-2.56 0-1.19-.82-2.31-2.03-2.51.12-.35.18-.72.18-1.11 0-2.01-1.63-3.63-3.64-3.63-.67 0-1.29.19-1.82.51A4.35 4.35 0 0 0 11.56 8.87zM0 15.24c0 .95.77 1.72 1.72 1.72s1.72-.77 1.72-1.72V12.9c0-.95-.77-1.72-1.72-1.72S0 11.95 0 12.9v2.34zm5.16 1.4c0 .95.77 1.72 1.72 1.72s1.72-.77 1.72-1.72V9.98c0-.95-.77-1.72-1.72-1.72s-1.72.77-1.72 1.72v6.66zm3.44.32c0 .95.77 1.72 1.72 1.72s1.72-.77 1.72-1.72V8.87c0-.95-.77-1.72-1.72-1.72s-1.72.77-1.72 1.72v8.09z"/></svg>
+          </a>
         </div>
         <div class="theme-btns">
           <button class="tbtn tbtn-minimal on" title="Minimal" onclick="setTheme('minimal')"></button>
@@ -985,75 +977,50 @@
   renderList();
 
   /* ════════════════════════════════════════════════════
-     BGM — SoundCloud Widget API
+     SoundCloud Widget API
   ════════════════════════════════════════════════════ */
-  (function () {
-    const s = document.createElement('script');
-    s.src = 'https://w.soundcloud.com/player/api.js';
-    s.onload = initSC;
-    document.head.appendChild(s);
+  (function() {
+    const iframe = document.getElementById('sc-widget');
+    if (!iframe) return;
+    const script = document.createElement('script');
+    script.src = 'https://w.soundcloud.com/player/api.js';
+    script.onload = function() {
+      const widget = SC.Widget(iframe);
+      let isPlaying = false;
+      let shuffleOn = false;
 
-    let widget, sounds = [], isPlaying = false, shuffleOn = false, progTimer = null;
+      function setPlayIcon(playing) {
+        isPlaying = playing;
+        const icon = playing ? '⏸' : '▶';
+        document.getElementById('bgm-play').textContent  = icon;
+        document.getElementById('bgm2-play').textContent = icon;
+      }
 
-    function initSC() {
-      widget = SC.Widget(document.getElementById('sc-widget'));
-
-      widget.bind(SC.Widget.Events.READY, function () {
-        widget.getSounds(function (list) { sounds = list; });
-      });
-
-      widget.bind(SC.Widget.Events.PLAY, function () {
-        isPlaying = true;
-        document.getElementById('bgm-play').textContent = '⏸';
-        widget.getCurrentSound(function (snd) {
-          if (snd) document.getElementById('bgm-track-name').textContent = snd.title;
+      widget.bind(SC.Widget.Events.PLAY,   function() { setPlayIcon(true); });
+      widget.bind(SC.Widget.Events.PAUSE,  function() { setPlayIcon(false); });
+      widget.bind(SC.Widget.Events.FINISH, function() { setPlayIcon(false); });
+      widget.bind(SC.Widget.Events.PLAY_PROGRESS, function() {
+        widget.getCurrentSound(function(sound) {
+          const el = document.getElementById('bgm-title');
+          if (el && sound) el.textContent = sound.title || 'Novel BGM List';
         });
-        startProg();
       });
 
-      widget.bind(SC.Widget.Events.PAUSE, function () {
-        isPlaying = false;
-        document.getElementById('bgm-play').textContent = '▶';
-        stopProg();
-      });
+      function togglePlay() { if (isPlaying) widget.pause(); else widget.play(); }
 
-      widget.bind(SC.Widget.Events.FINISH, function () {
-        if (shuffleOn && sounds.length) widget.skip(Math.floor(Math.random() * sounds.length));
-      });
-    }
+      document.getElementById('bgm-play').onclick  = togglePlay;
+      document.getElementById('bgm-prev').onclick  = function() { widget.prev(); };
+      document.getElementById('bgm-next').onclick  = function() { widget.next(); };
 
-    function startProg() {
-      stopProg();
-      progTimer = setInterval(function () {
-        widget.getPosition(function (pos) {
-          widget.getDuration(function (dur) {
-            if (dur > 0)
-              document.getElementById('bgm-prog-fill').style.width =
-                ((pos / dur) * 100).toFixed(1) + '%';
-          });
-        });
-      }, 900);
-    }
-    function stopProg() { clearInterval(progTimer); progTimer = null; }
-
-    document.getElementById('bgm-play').addEventListener('click', function () {
-      widget[isPlaying ? 'pause' : 'play']();
-    });
-    document.getElementById('bgm-prev').addEventListener('click', function () {
-      widget.prev();
-    });
-    document.getElementById('bgm-next').addEventListener('click', function () {
-      if (shuffleOn && sounds.length) widget.skip(Math.floor(Math.random() * sounds.length));
-      else widget.next();
-    });
-    document.getElementById('bgm-shuffle').addEventListener('click', function () {
-      shuffleOn = !shuffleOn;
-      this.classList.toggle('active', shuffleOn);
-    });
-    document.getElementById('bgm-prog').addEventListener('click', function (e) {
-      const pct = e.offsetX / this.offsetWidth;
-      widget.getDuration(function (dur) { widget.seekTo(pct * dur); });
-    });
+      document.getElementById('bgm2-play').onclick    = togglePlay;
+      document.getElementById('bgm2-prev').onclick    = function() { widget.prev(); };
+      document.getElementById('bgm2-next').onclick    = function() { widget.next(); };
+      document.getElementById('bgm2-shuffle').onclick = function() {
+        shuffleOn = !shuffleOn;
+        document.getElementById('bgm2-shuffle').style.color = shuffleOn ? '#fff' : '';
+      };
+    };
+    document.head.appendChild(script);
   })();
 
   </script>
