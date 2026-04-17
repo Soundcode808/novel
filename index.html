@@ -1108,9 +1108,10 @@
           return;
         }
         $panel.innerHTML = sounds.map(function(s, i) {
+          const title = (s && s.title) ? s.title : ('Track ' + (i+1));
           return '<div class="bgm-track" data-idx="'+i+'">'+
             '<span class="bgm-track-num">'+String(i+1).padStart(2,'0')+'</span>'+
-            '<span>'+(s.title||'Untitled')+'</span>'+
+            '<span class="bgm-track-name">'+title+'</span>'+
           '</div>';
         }).join('');
         $panel.querySelectorAll('.bgm-track').forEach(function(el) {
@@ -1119,6 +1120,22 @@
             widget.skip(parseInt(el.dataset.idx));
             widget.play();
           };
+        });
+        // 현재 재생 중 트랙 하이라이트 복원
+        if (currentIdx >= 0) {
+          const cur = $panel.querySelector('.bgm-track[data-idx="'+currentIdx+'"]');
+          if (cur) cur.classList.add('playing');
+        }
+      }
+
+      // SC 위젯은 긴 플레이리스트 메타데이터를 점진 로드 → 재시도
+      function loadSoundsWithRetry(retries) {
+        widget.getSounds(function(sounds) {
+          renderTracks(sounds);
+          const missing = sounds.filter(function(s) { return !s || !s.title; }).length;
+          if (missing > 0 && retries > 0) {
+            setTimeout(function() { loadSoundsWithRetry(retries - 1); }, 1500);
+          }
         });
       }
 
@@ -1136,7 +1153,7 @@
       }
 
       widget.bind(SC.Widget.Events.READY, function() {
-        widget.getSounds(function(sounds) { renderTracks(sounds); });
+        loadSoundsWithRetry(8);
         widget.setVolume(80);
       });
       widget.bind(SC.Widget.Events.PLAY,   function() { setPlayIcon(true); updateCurrent(); });
