@@ -533,14 +533,14 @@
     .bgm-bar-sc:hover { color: #ff7733; }
     .bgm-bar-sc svg { width: 14px; height: 14px; fill: currentColor; }
 
-    /* 볼륨 팝업 */
+    /* 볼륨 팝업 (데스크톱 아래 / 모바일 위) */
     .bgm-vol-wrap { position: relative; display: inline-flex; align-items: center; }
     .bgm-vol-pop {
-      position: absolute; bottom: calc(100% + 8px); left: 50%;
+      position: absolute; top: calc(100% + 6px); left: 50%;
       transform: translateX(-50%);
       width: 32px; height: 110px; padding: .7rem 0;
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 4px; z-index: 95;
+      border-radius: 4px; z-index: 200;
       display: none; align-items: center; justify-content: center;
     }
     .bgm-vol-wrap.open .bgm-vol-pop { display: flex; }
@@ -550,6 +550,8 @@
       width: 4px; height: 90px; margin: 0;
       accent-color: var(--text);
     }
+    .bgm-bar-btn svg { display: block; }
+    #bgm2-vol svg { width: 13px; height: 13px; fill: currentColor; }
 
     /* 확장 패널 */
     .bgm-panel {
@@ -621,6 +623,8 @@
       .bgm-panel {
         top: auto; bottom: calc(100% + 4px); left: 0; right: 0; width: auto;
       }
+      .bgm-vol-pop { top: auto; bottom: calc(100% + 8px); }
+      #bgm2-vol svg { width: 16px; height: 16px; }
       footer { padding-bottom: calc(52px + 2rem); }
     }
   </style>
@@ -669,7 +673,7 @@
           <button class="bgm-bar-btn" id="bgm2-next" title="다음 곡">⏭</button>
           <button class="bgm-bar-btn" id="bgm2-mode" title="순차 재생">→</button>
           <div class="bgm-vol-wrap">
-            <button class="bgm-bar-btn" id="bgm2-vol" title="볼륨">♪</button>
+            <button class="bgm-bar-btn" id="bgm2-vol" title="볼륨"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
             <div class="bgm-vol-pop">
               <input type="range" class="bgm-vol-slider" id="bgm-vol-slider" min="0" max="100" value="80">
             </div>
