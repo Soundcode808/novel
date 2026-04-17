@@ -660,6 +660,35 @@
       }
       .bgm-vol-pop { top: auto; bottom: calc(100% + 8px); }
       #bgm2-vol svg { width: 16px; height: 16px; }
+
+      /* 볼륨 팝업/패널도 테마 반전 */
+      body.t-minimal .bgm-vol-pop,
+      body.t-minimal .bgm-panel { background: #1c1c1e; border-color: rgba(255,255,255,0.15); color: #fff; }
+      body.t-sepia   .bgm-vol-pop,
+      body.t-sepia   .bgm-panel { background: #2a2015; border-color: rgba(255,255,255,0.15); color: #fff; }
+      body.t-night   .bgm-vol-pop,
+      body.t-night   .bgm-panel { background: #f5f2ea; border-color: rgba(0,0,0,0.15); color: #000; }
+      body.t-void    .bgm-vol-pop,
+      body.t-void    .bgm-panel { background: #e8f0fa; border-color: rgba(0,0,0,0.15); color: #000; }
+
+      body.t-minimal .bgm-vol-slider,
+      body.t-sepia   .bgm-vol-slider { accent-color: #fff; }
+      body.t-night   .bgm-vol-slider,
+      body.t-void    .bgm-vol-slider { accent-color: #000; }
+
+      body.t-minimal .bgm-track,
+      body.t-sepia   .bgm-track { color: rgba(255,255,255,0.7); border-top-color: rgba(255,255,255,0.1); }
+      body.t-minimal .bgm-track:hover,
+      body.t-sepia   .bgm-track:hover { color: #fff; background: rgba(255,255,255,0.08); }
+      body.t-minimal .bgm-track.playing,
+      body.t-sepia   .bgm-track.playing { color: #fff; }
+
+      body.t-night .bgm-track,
+      body.t-void  .bgm-track { color: rgba(0,0,0,0.6); border-top-color: rgba(0,0,0,0.1); }
+      body.t-night .bgm-track:hover,
+      body.t-void  .bgm-track:hover { color: #000; background: rgba(0,0,0,0.05); }
+      body.t-night .bgm-track.playing,
+      body.t-void  .bgm-track.playing { color: #000; }
       footer { padding-bottom: calc(52px + 2rem); }
     }
   </style>
