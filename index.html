@@ -509,14 +509,27 @@
     #bgm2-vol  { font-size: .78rem; }
 
     .bgm-bar-title {
-      flex: 0 1 auto; font-family: 'Space Mono', monospace;
+      flex: 0 0 160px; width: 160px;
+      font-family: 'Space Mono', monospace;
       font-size: .58rem; color: var(--text-sub); letter-spacing: .05em;
-      cursor: pointer; margin: 0 .4rem; min-width: 0;
-      max-width: 150px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      cursor: pointer; margin: 0 .4rem;
+      overflow: hidden; white-space: nowrap;
       transition: color .15s; user-select: none;
+      display: flex; align-items: center;
     }
     .bgm-bar-title:hover { color: var(--text); }
+    .bgm-title-single { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+    .bgm-title-scroll {
+      display: inline-block; white-space: nowrap;
+      animation: bgm-marquee 14s linear infinite;
+      will-change: transform;
+    }
+    .bgm-title-scroll .bgm-title-single { max-width: none; overflow: visible; padding-right: 3rem; }
+    .bgm-bar-title:hover .bgm-title-scroll { animation-play-state: paused; }
+    @keyframes bgm-marquee {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
 
     .bgm-bar-sc {
       display: flex; align-items: center; justify-content: center;
@@ -617,7 +630,7 @@
       #bgm2-play { font-size: .95rem; }
       #bgm2-mode { font-size: .8rem; }
       #bgm2-vol  { font-size: .88rem; }
-      .bgm-bar-title { max-width: none; flex: 1; font-size: .65rem; margin: 0 .5rem; }
+      .bgm-bar-title { max-width: none; flex: 1 1 auto; width: auto; min-width: 0; font-size: .65rem; margin: 0 .5rem; }
       .bgm-bar-sc { width: 50px; margin-left: .5rem; }
       .bgm-bar-sc svg { width: 18px; height: 18px; }
       .bgm-panel {
@@ -1093,6 +1106,32 @@
         $play.textContent = playing ? '⏸' : '▶';
       }
 
+      let lastTitleText = '';
+      function setTitle(text) {
+        if (text === lastTitleText) return;
+        lastTitleText = text;
+        $title.innerHTML = '';
+        const single = document.createElement('span');
+        single.className = 'bgm-title-single';
+        single.textContent = text;
+        $title.appendChild(single);
+        requestAnimationFrame(function() {
+          if (single.scrollWidth > $title.clientWidth + 2) {
+            $title.innerHTML = '';
+            const scroll = document.createElement('span');
+            scroll.className = 'bgm-title-scroll';
+            [0, 1].forEach(function() {
+              const s = document.createElement('span');
+              s.className = 'bgm-title-single';
+              s.textContent = text;
+              scroll.appendChild(s);
+            });
+            $title.appendChild(scroll);
+          }
+        });
+      }
+      setTitle('Novel BGM List');
+
       function setMode(m) {
         mode = m;
         $mode.textContent = MODES[m].icon;
@@ -1152,7 +1191,7 @@
           });
         });
         widget.getCurrentSound(function(sound) {
-          if (sound && sound.title) $title.textContent = sound.title;
+          if (sound && sound.title) setTitle(sound.title);
         });
       }
 
