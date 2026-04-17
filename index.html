@@ -618,15 +618,36 @@
         display: flex !important;
         position: fixed; bottom: 0; left: 0; right: 0;
         z-index: 200; padding: 0 1rem; height: 52px;
-        border: none !important; border-top: 1px solid var(--border) !important;
+        border: none !important; border-top: 1px solid rgba(0,0,0,0.15) !important;
         border-radius: 0;
-        background: var(--hbg) !important;
-        backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
       }
-      body.t-minimal .bgm-bar { border-top-color: rgba(0,0,0,0.14) !important; }
-      body.t-sepia   .bgm-bar { border-top-color: rgba(80,50,15,0.18) !important; }
-      body.t-night   .bgm-bar { border-top-color: rgba(232,216,184,0.2) !important; }
-      body.t-void    .bgm-bar { border-top-color: rgba(94,200,232,0.2) !important; }
+      /* 모바일: 테마 반전 색상 */
+      body.t-minimal .bgm-bar { background: #1c1c1e !important; }
+      body.t-sepia   .bgm-bar { background: #2a2015 !important; }
+      body.t-night   .bgm-bar { background: #f5f2ea !important; border-top-color: rgba(255,255,255,0.2) !important; }
+      body.t-void    .bgm-bar { background: #e8f0fa !important; border-top-color: rgba(255,255,255,0.25) !important; }
+
+      body.t-minimal .bgm-bar .bgm-bar-btn,
+      body.t-sepia   .bgm-bar .bgm-bar-btn { color: rgba(255,255,255,0.7); }
+      body.t-minimal .bgm-bar .bgm-bar-btn:hover,
+      body.t-sepia   .bgm-bar .bgm-bar-btn:hover { color: #fff; }
+      body.t-minimal #bgm2-play,
+      body.t-sepia   #bgm2-play { color: #fff !important; }
+      body.t-minimal .bgm-bar-title,
+      body.t-sepia   .bgm-bar-title { color: rgba(255,255,255,0.6); }
+      body.t-minimal .bgm-bar-title:hover,
+      body.t-sepia   .bgm-bar-title:hover { color: #fff; }
+
+      body.t-night .bgm-bar .bgm-bar-btn,
+      body.t-void  .bgm-bar .bgm-bar-btn { color: rgba(0,0,0,0.55); }
+      body.t-night .bgm-bar .bgm-bar-btn:hover,
+      body.t-void  .bgm-bar .bgm-bar-btn:hover { color: #000; }
+      body.t-night #bgm2-play,
+      body.t-void  #bgm2-play { color: #000 !important; }
+      body.t-night .bgm-bar-title,
+      body.t-void  .bgm-bar-title { color: rgba(0,0,0,0.5); }
+      body.t-night .bgm-bar-title:hover,
+      body.t-void  .bgm-bar-title:hover { color: #000; }
       .bgm-bar-btn { font-size: .85rem; padding: .3rem .48rem; }
       #bgm2-play { font-size: .95rem; }
       #bgm2-mode { font-size: .8rem; }
