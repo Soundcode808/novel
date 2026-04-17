@@ -533,18 +533,18 @@
 
     .bgm-bar-sc {
       display: flex; align-items: center; justify-content: center;
-      color: #ff5500;
+      background: #ff5500; color: #fff;
       align-self: stretch; width: 30px;
       margin-left: .3rem; flex-shrink: 0;
       border-left: 1px solid var(--border);
-      transition: border-color .15s, color .15s;
+      transition: background .15s;
     }
     body.t-minimal .bgm-bar-sc { border-left-color: rgba(0,0,0,0.18); }
     body.t-sepia   .bgm-bar-sc { border-left-color: rgba(80,50,15,0.25); }
     body.t-night   .bgm-bar-sc { border-left-color: rgba(232,216,184,0.28); }
     body.t-void    .bgm-bar-sc { border-left-color: rgba(94,200,232,0.35); }
-    .bgm-bar-sc:hover { color: #ff7733; }
-    .bgm-bar-sc svg { width: 14px; height: 14px; fill: currentColor; }
+    .bgm-bar-sc:hover { background: #ff7733; }
+    .bgm-bar-sc svg { width: 18px; height: 18px; fill: currentColor; }
 
     /* 볼륨 팝업 (데스크톱 아래 / 모바일 위) */
     .bgm-vol-wrap { position: relative; display: inline-flex; align-items: center; }
@@ -632,8 +632,8 @@
       #bgm2-mode { font-size: .8rem; }
       #bgm2-vol  { font-size: .88rem; }
       .bgm-bar-title { max-width: none; flex: 1 1 auto; width: auto; min-width: 0; font-size: .65rem; margin: 0 .5rem; }
-      .bgm-bar-sc { width: 50px; margin-left: .5rem; }
-      .bgm-bar-sc svg { width: 18px; height: 18px; }
+      .bgm-bar-sc { width: 52px; margin-left: .5rem; }
+      .bgm-bar-sc svg { width: 26px; height: 26px; }
       .bgm-panel {
         top: auto; bottom: calc(100% + 4px); left: 0; right: 0; width: auto;
       }
